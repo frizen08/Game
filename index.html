@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#09131f">
+<title>FIGHT FRIZ — Арена</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#09131f;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    touch-action:none;overscroll-behavior:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#fff}
+  canvas{display:block;touch-action:none}
+
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at top, #173554 0%, #070e17 100%);
+    z-index:10;padding:14px;overflow-y:auto}
+  .hidden{display:none !important}
+
+  .top-bar{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:12;pointer-events:none}
+  .pill{pointer-events:auto;background:rgba(10,21,36,0.9);border:1px solid rgba(125,249,255,0.22);
+    border-radius:12px;padding:7px 11px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.45)}
+  .pill-gold{color:#f1c40f}
+  .pill-trophies{color:#ff9f43}
+  .pill-nick{color:#67e8f9;cursor:pointer}
+
+  .lobby-card{width:100%;max-width:420px;background:rgba(255,255,255,0.05);border:1px solid rgba(125,249,255,0.16);
+    border-radius:20px;padding:16px;text-align:center;margin-top:42px;box-shadow:0 16px 40px rgba(0,0,0,0.55)}
+  .title{font-size:28px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;
+    background:linear-gradient(180deg,#ffffff 15%,#67e8f9 65%,#38bdf8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .subtitle{font-size:11px;color:#93c5fd;margin-bottom:12px;letter-spacing:1px}
+
+  .brawlers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  .brawler-card{background:rgba(12,23,38,0.92);border:2px solid rgba(255,255,255,0.12);border-radius:14px;
+    padding:10px 6px;cursor:pointer;transition:transform 0.1s, border-color 0.15s;position:relative}
+  .brawler-card:active{transform:scale(0.96)}
+  .brawler-card.selected{border-color:#67e8f9;background:rgba(103,232,249,0.13)}
+  .brawler-card.locked{opacity:0.72}
+  .b-avatar{width:42px;height:42px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;color:#08101a;border:2px solid rgba(255,255,255,0.45)}
+  .b-name{font-size:12px;font-weight:800;margin-bottom:2px}
+  .b-role{font-size:10px;color:#93c5fd;margin-bottom:4px}
+  .b-lvl{font-size:10px;font-weight:800;color:#2ecc71}
+
+  .info-panel{background:rgba(0,0,0,0.38);border-radius:12px;padding:10px;margin-bottom:12px;text-align:left;font-size:12px;line-height:1.45}
+  .info-row{display:flex;justify-content:space-between;margin-bottom:3px}
+
+  .btn{width:100%;padding:12px 14px;border:none;border-radius:13px;font-size:14px;font-weight:900;
+    letter-spacing:0.6px;cursor:pointer;text-transform:uppercase;transition:transform 0.1s;margin-top:6px}
+  .btn:active{transform:scale(0.97)}
+  .btn-play{background:linear-gradient(135deg,#38bdf8,#0284c7);color:#06101b;box-shadow:0 6px 20px rgba(56,189,248,0.35)}
+  .btn-upg{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#09150d;font-size:12px;padding:10px}
+  .btn-unlock{background:linear-gradient(135deg,#a855f7,#7e22ce);color:#fff;font-size:12px;padding:10px}
+  .btn-sec{background:rgba(255,255,255,0.09);color:#fff;border:1px solid rgba(255,255,255,0.16);font-size:12px;padding:9px}
+
+  .modal-box{background:#101c2c;border:1px solid rgba(125,249,255,0.22);border-radius:18px;padding:18px;width:min(340px,92vw);text-align:center}
+  .nick-input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,249,255,0.3);
+    background:#08101a;color:#fff;font-size:15px;margin:10px 0;text-align:center;outline:none;-webkit-user-select:text;user-select:text}
+
+  #btnExitMatch{position:fixed;top:12px;right:12px;z-index:8;background:rgba(0,0,0,0.68);
+    border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:10px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+<button id="btnExitMatch" class="hidden">ВЫЙТИ</button>
+
+<!-- ВЕРХНЯЯ ПАНЕЛЬ ПРОФИЛЯ -->
+<div id="topBar" class="top-bar">
+  <div id="pillNick" class="pill pill-nick">👤 Игрок</div>
+  <div style="display:flex;gap:6px">
+    <div id="pillTrophies" class="pill pill-trophies">🏆 0</div>
+    <div id="pillCoins" class="pill pill-gold">🪙 200</div>
+  </div>
+</div>
+
+<!-- ЛОББИ / АККАУНТ -->
+<div id="lobbyScreen" class="screen">
+  <div class="lobby-card">
+    <div class="title">FIGHT FRIZ</div>
+    <div class="subtitle">МОРОЗНАЯ АРЕНА • 6 БОЙЦОВ • ЗАМОРОЗКА</div>
+
+    <div id="brawlersGrid" class="brawlers-grid"></div>
+
+    <div id="brawlerInfo" class="info-panel"></div>
+
+    <button id="btnActionBrawler" class="btn btn-upg">УЛУЧШИТЬ БОЙЦА</button>
+    <button id="btnPlayMatch" class="btn btn-play">В БОЙ!</button>
+    <button id="btnOpenProfile" class="btn btn-sec">Профиль аккаунта</button>
+  </div>
+</div>
+
+<!-- ИТОГИ МАТЧА -->
+<div id="resultScreen" class="screen hidden">
+  <div class="modal-box">
+    <div id="resRank" style="font-size:28px;font-weight:900;color:#67e8f9;margin-bottom:4px">1 МЕСТО!</div>
+    <div id="resSub" style="font-size:12px;color:#93c5fd;margin-bottom:14px">Победа на арене FIGHT FRIZ</div>
+    <div id="resRewards" class="info-panel" style="text-align:center;font-weight:800"></div>
+    <button id="btnBackLobby" class="btn btn-play">В ЛОББИ</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ПРОФИЛЯ / НИКА -->
+<div id="profileModal" class="screen hidden" style="z-index:25;background:rgba(6,11,20,0.88)">
+  <div class="modal-box">
+    <div style="font-size:17px;font-weight:900;color:#67e8f9">ПРОФИЛЬ FIGHT FRIZ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:4px">ID аккаунта: <span id="accIdText">—</span></div>
+    <input id="nickInput" class="nick-input" maxlength="16" placeholder="Твой ник...">
+    <div style="font-size:11px;color:#cbd5e1;margin-bottom:10px;line-height:1.4">
+      Прогресс сохраняется в памяти устройства и готов к подключению облачной базы Supabase.
+    </div>
+    <button id="btnSaveNick" class="btn btn-play">СОХРАНИТЬ НИК</button>
+    <button id="btnCloseProfile" class="btn btn-sec">ЗАКРЫТЬ</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================================================
+   TELEGRAM MINI APP INIT
+   ============================================================ */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+let tgUser = null;
+if (tg){
+  try {
+    tg.ready();
+    tg.expand();
+    if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) tgUser = tg.initDataUnsafe.user;
+  } catch(_){}
+}
+
+/* ============================================================
+   УТИЛИТЫ И ЗВУК
+   ============================================================ */
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+const lerp  = (a,b,t) => a + (b-a)*t;
+const dist  = (x1,y1,x2,y2) => Math.hypot(x2-x1, y2-y1);
+const rand  = (a,b) => a + Math.random()*(b-a);
+const randInt = (a,b) => Math.floor(rand(a,b+1));
+
+const sfx = {
+  ctx: null,
+  play(freq1, freq2, dur = 0.09, type = 'triangle', vol = 0.12){
+    try {
+      if (!this.ctx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        this.ctx = new AC();
+      }
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(()=>{});
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq1, now);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq2), now + dur);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      osc.connect(gain).connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + dur + 0.01);
+    } catch(_){}
+  }
+};
+
+/* ============================================================
+   БОЙЦЫ FIGHT FRIZ
+   ============================================================ */
+const BRAWLERS = {
+  friz: {
+    id: 'friz',
+    name: 'Фриз',
+    role: 'Крио-стрелок • Заморозка',
+    color: '#38bdf8',
+    unlockCost: 0,
+    baseHp: 3500,
+    baseDmg: 330,
+    speed: 245,
+    reloadTime: 1.2,
+    pellets: 4,
+    spread: 0.26,
+    range: 365,
+    bulletSpeed: 790,
+    freezeSec: 1.4,
+    superDesc: 'Ледяной шторм: 8 замораживающих снарядов веером!'
+  },
+  volt: {
+    id: 'volt',
+    name: 'Вольт',
+    role: 'Снайпер • Очередь',
+    color: '#f43f5e',
+    unlockCost: 150,
+    baseHp: 2850,
+    baseDmg: 365,
+    speed: 255,
+    reloadTime: 1.15,
+    pellets: 1,
+    burst: 4,
+    spread: 0.04,
+    range: 485,
+    bulletSpeed: 950,
+    freezeSec: 0.8,
+    superDesc: 'Морозный залп: быстрая очередь с большой дальностью!'
+  },
+  titan: {
+    id: 'titan',
+    name: 'Титан',
+    role: 'Танк • Ближний бой',
+    color: '#f59e0b',
+    unlockCost: 300,
+    baseHp: 5200,
+    baseDmg: 430,
+    speed: 245,
+    reloadTime: 1.35,
+    pellets: 5,
+    spread: 0.42,
+    range: 255,
+    bulletSpeed: 730,
+    freezeSec: 1.6,
+    superDesc: 'Ледокол: мощный таранный рывок вперёд со сносом!'
+  }
+};
+const BRAWLER_ORDER = ['friz', 'volt', 'titan'];
+
+/* ============================================================
+   АККАУНТ И СОХРАНЕНИЯ
+   ============================================================ */
+const SAVE_KEY = 'fight_friz_account_v1';
+
+const account = {
+  id: tgUser ? `tg_${tgUser.id}` : 'friz_' + Math.floor(100000 + Math.random()*900000),
+  nick: tgUser ? (tgUser.first_name || 'Фризер') : 'Фризер #1',
+  trophies: 0,
+  coins: 200,
+  selected: 'friz',
+  unlocked: { friz: true, volt: false, titan: false },
+  levels:   { friz: 1,    volt: 1,     titan: 1 }
+};
+
+function saveAccount(){
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(account));
+  } catch(_){}
+}
+
+function loadAccount(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.id && !tgUser) account.id = d.id;
+    if (d.nick) account.nick = d.nick;
+    if (typeof d.trophies === 'number') account.trophies = Math.max(0, d.trophies);
+    if (typeof d.coins === 'number') account.coins = Math.max(0, d.coins);
+    if (d.selected && BRAWLERS[d.selected]) account.selected = d.selected;
+    if (d.unlocked) account.unlocked = { ...account.unlocked, ...d.unlocked };
+    if (d.levels) account.levels = { ...account.levels, ...d.levels };
+  } catch(_){}
+}
+
+function getBrawlerStats(id, lvlOverride = null){
+  const b = BRAWLERS[id];
+  const lvl = lvlOverride || account.levels[id] || 1;
+  const mult = 1 + (lvl - 1) * 0.12;
+  return {
+    ...b,
+    level: lvl,
+    maxHp: Math.round(b.baseHp * mult),
+    dmg: Math.round(b.baseDmg * mult)
+  };
+}
+
+/* ============================================================
+   ЛОББИ UI
+   ============================================================ */
+const lobbyScreen      = document.getElementById('lobbyScreen');
+const resultScreen     = document.getElementById('resultScreen');
+const profileModal     = document.getElementById('profileModal');
+const topBar           = document.getElementById('topBar');
+const btnExitMatch     = document.getElementById('btnExitMatch');
+const brawlersGrid     = document.getElementById('brawlersGrid');
+const brawlerInfo      = document.getElementById('brawlerInfo');
+const btnActionBrawler = document.getElementById('btnActionBrawler');
+const btnPlayMatch     = document.getElementById('btnPlayMatch');
+
+function renderLobby(){
+  document.getElementById('pillNick').textContent = '👤 ' + account.nick;
+  document.getElementById('pillTrophies').textContent = '🏆 ' + account.trophies;
+  document.getElementById('pillCoins').textContent = '🪙 ' + account.coins;
+
+  brawlersGrid.innerHTML = '';
+  for (const id of BRAWLER_ORDER){
+    const b = BRAWLERS[id];
+    const isUnlocked = !!account.unlocked[id];
+    const lvl = account.levels[id] || 1;
+    const card = document.createElement('div');
+    card.className = 'brawler-card' + (account.selected === id ? ' selected' : '') + (!isUnlocked ? ' locked' : '');
+    card.innerHTML = `
+      <div class="b-avatar" style="background:${b.color}">${b.name[0]}</div>
+      <div class="b-name">${b.name}</div>
+      <div class="b-role">${b.role.split('•')[0]}</div>
+      <div class="b-lvl">${isUnlocked ? `Ур. ${lvl}` : `🔒 ${b.unlockCost} 🪙`}</div>
+    `;
+    card.onclick = () => {
+      account.selected = id;
+      saveAccount();
+      renderLobby();
+    };
+    brawlersGrid.appendChild(card);
+  }
+
+  const selId = account.selected;
+  const st = getBrawlerStats(selId);
+  const unlocked = !!account.unlocked[selId];
+  const upgCost = st.level * 120;
+
+  brawlerInfo.innerHTML = `
+    <div style="font-weight:900;font-size:14px;color:${st.color};margin-bottom:4px">${st.name} (${st.role})</div>
+    <div class="info-row"><span>Здоровье:</span><b>${st.maxHp} HP</b></div>
+    <div class="info-row"><span>Урон снарядом:</span><b>${st.dmg} × ${st.pellets} (❄️ ${st.freezeSec}с)</b></div>
+    <div style="font-size:11px;color:#67e8f9;margin-top:4px">⚡ ${st.superDesc}</div>
+  `;
+
+  if (!unlocked){
+    btnActionBrawler.className = 'btn btn-unlock';
+    btnActionBrawler.textContent = `ОТКРЫТЬ БОЙЦА ЗА ${st.unlockCost} 🪙`;
+    btnPlayMatch.disabled = true;
+    btnPlayMatch.style.opacity = '0.45';
+  } else {
+    btnActionBrawler.className = 'btn btn-upg';
+    btnActionBrawler.textContent = st.level >= 9 ? 'МАКСИМАЛЬНЫЙ УРОВЕНЬ (9)' : `УЛУЧШИТЬ ДО УР.${st.level + 1} (${upgCost} 🪙)`;
+    btnPlayMatch.disabled = false;
+    btnPlayMatch.style.opacity = '1';
+  }
+}
+
+btnActionBrawler.onclick = () => {
+  const id = account.selected;
+  const b = BRAWLERS[id];
+  if (!account.unlocked[id]){
+    if (account.coins >= b.unlockCost){
+      account.coins -= b.unlockCost;
+      account.unlocked[id] = true;
+      sfx.play(520, 880, 0.2);
+      saveAccount();
+      renderLobby();
+    } else {
+      sfx.play(240, 160, 0.15);
+    }
+    return;
+  }
+  const lvl = account.levels[id] || 1;
+  const cost = lvl * 120;
+  if (lvl < 9 && account.coins >= cost){
+    account.coins -= cost;
+    account.levels[id] = lvl + 1;
+    sfx.play(560, 940, 0.2);
+    saveAccount();
+    renderLobby();
+  } else {
+    sfx.play(240, 160, 0.15);
+  }
+};
+
+document.getElementById('btnOpenProfile').onclick = () => {
+  document.getElementById('accIdText').textContent = account.id;
+  document.getElementById('nickInput').value = account.nick;
+  profileModal.classList.remove('hidden');
+};
+document.getElementById('pillNick').onclick = () => document.getElementById('btnOpenProfile').click();
+document.getElementById('btnCloseProfile').onclick = () => profileModal.classList.add('hidden');
+document.getElementById('btnSaveNick').onclick = () => {
+  const val = document.getElementById('nickInput').value.trim();
+  if (val.length >= 2){
+    account.nick = val;
+    saveAccount();
+    renderLobby();
+  }
+  profileModal.classList.add('hidden');
+};
+
+/* ============================================================
+   КАРТА АРЕНЫ
+   ============================================================ */
+const TILE = 56;
+const ARENA_COLS = 34;
+const ARENA_ROWS = 34;
+const ARENA_W = ARENA_COLS * TILE;
+const ARENA_H = ARENA_ROWS * TILE;
+
+const T_FLOOR = 0, T_WALL = 1, T_BUSH = 2;
+const arenaMap = new Uint8Array(ARENA_COLS * ARENA_ROWS);
+
+function buildArenaMap(){
+  arenaMap.fill(T_FLOOR);
+  for (let y=0; y<ARENA_ROWS; y++){
+    for (let x=0; x<ARENA_COLS; x++){
+      if (x === 0 || y === 0 || x === ARENA_COLS-1 || y === ARENA_ROWS-1){
+        arenaMap[y*ARENA_COLS + x] = T_WALL;
+        continue;
+      }
+      const sx = x < ARENA_COLS/2 ? x : (ARENA_COLS - 1 - x);
+      const sy = y < ARENA_ROWS/2 ? y : (ARENA_ROWS - 1 - y);
+
+      if ((sx === 6 && sy >= 5 && sy <= 8) || (sy === 6 && sx >= 5 && sx <= 8)){
+        arenaMap[y*ARENA_COLS + x] = T_WALL;
+      } else if ((sx === 12 && sy >= 10 && sy <= 13) || (sy === 12 && sx >= 10 && sx <= 12)){
+        arenaMap[y*ARENA_COLS + x] = T_WALL;
+      } else if ((sx >= 8 && sx <= 11 && sy >= 8 && sy <= 11) || (sx >= 14 && sx <= 16 && sy >= 14 && sy <= 16)){
+        arenaMap[y*ARENA_COLS + x] = T_BUSH;
+      } else if ((sx >= 3 && sx <= 4 && sy >= 13 && sy <= 16)){
+        arenaMap[y*ARENA_COLS + x] = T_BUSH;
+      }
+    }
+  }
+}
+
+function tileAt(x, y){
+  const tx = Math.floor(x / TILE);
+  const ty = Math.floor(y / TILE);
+  if (tx < 0 || ty < 0 || tx >= ARENA_COLS || ty >= ARENA_ROWS) return T_WALL;
+  return arenaMap[ty*ARENA_COLS + tx];
+}
+
+function resolveArenaWalls(ent, r){
+  const minX = Math.floor((ent.x - r) / TILE);
+  const maxX = Math.floor((ent.x + r) / TILE);
+  const minY = Math.floor((ent.y - r) / TILE);
+  const maxY = Math.floor((ent.y + r) / TILE);
+  let hit = false;
+  for (let ty=minY; ty<=maxY; ty++){
+    for (let tx=minX; tx<=maxX; tx++){
+      if (tx < 0 || ty < 0 || tx >= ARENA_COLS || ty >= ARENA_ROWS || arenaMap[ty*ARENA_COLS + tx] === T_WALL){
+        const bx = tx * TILE, by = ty * TILE;
+        const cx = clamp(ent.x, bx, bx + TILE);
+        const cy = clamp(ent.y, by, by + TILE);
+        const dx = ent.x - cx, dy = ent.y - cy;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < r*r){
+          const d = Math.sqrt(d2) || 0.001;
+          const push = r - d;
+          ent.x += (dx / d) * push;
+          ent.y += (dy / d) * push;
+          hit = true;
+        }
+      }
+    }
+  }
+  return hit;
+}
+
+/* ============================================================
+   CANVAS И ТАЧ-УПРАВЛЕНИЕ
+   ============================================================ */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d', { alpha: false });
+let CW = 0, CH = 0, DPR = 1;
+
+const btnAttack = { x: 0, y: 0, r: 52 };
+const btnSuper  = { x: 0, y: 0, r: 40 };
+
+function resizeCanvas(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  CW = window.innerWidth;
+  CH = window.innerHeight;
+  canvas.width  = Math.floor(CW * DPR);
+  canvas.height = Math.floor(CH * DPR);
+  canvas.style.width  = CW + 'px';
+  canvas.style.height = CH + 'px';
+
+  btnAttack.r = Math.min(54, CW * 0.145);
+  btnAttack.x = CW - btnAttack.r - 22;
+  btnAttack.y = CH - btnAttack.r - 24;
+
+  btnSuper.r = Math.min(40, CW * 0.11);
+  btnSuper.x = btnAttack.x - btnAttack.r - btnSuper.r - 18;
+  btnSuper.y = CH - btnSuper.r - 22;
+}
+window.addEventListener('resize', resizeCanvas);
+
+const ctrl = {
+  joyActive: false, joyId: null,
+  ox: 0, oy: 0, cx: 0, cy: 0,
+  ax: 0, ay: 0,
+  keys: {}
+};
+
+function updateMoveAxis(){
+  if (ctrl.joyActive){
+    let dx = ctrl.cx - ctrl.ox;
+    let dy = ctrl.cy - ctrl.oy;
+    const maxR = 60;
+    const len = Math.hypot(dx, dy);
+    if (len > maxR){ dx = dx/len*maxR; dy = dy/len*maxR; }
+    ctrl.ax = len > 8 ? dx / maxR : 0;
+    ctrl.ay = len > 8 ? dy / maxR : 0;
+    return;
+  }
+  let kx = 0, ky = 0;
+  if (ctrl.keys['KeyA'] || ctrl.keys['ArrowLeft'])  kx -= 1;
+  if (ctrl.keys['KeyD'] || ctrl.keys['ArrowRight']) kx += 1;
+  if (ctrl.keys['KeyW'] || ctrl.keys['ArrowUp'])    ky -= 1;
+  if (ctrl.keys['KeyS'] || ctrl.keys['ArrowDown'])  ky += 1;
+  if (kx || ky){
+    const l = Math.hypot(kx, ky);
+    ctrl.ax = kx / l;
+    ctrl.ay = ky / l;
+  } else {
+    ctrl.ax = 0;
+    ctrl.ay = 0;
+  }
+}
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (!match.active) return;
+  for (const t of e.changedTouches){
+    const x = t.clientX, y = t.clientY;
+    if (dist(x, y, btnAttack.x, btnAttack.y) <= btnAttack.r + 14){
+      fireFighter(match.player, false);
+    } else if (dist(x, y, btnSuper.x, btnSuper.y) <= btnSuper.r + 14){
+      fireFighter(match.player, true);
+    } else if (!ctrl.joyActive){
+      ctrl.joyActive = true;
+      ctrl.joyId = t.identifier;
+      ctrl.ox = ctrl.cx = x;
+      ctrl.oy = ctrl.cy = y;
+      updateMoveAxis();
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  for (const t of e.changedTouches){
+    if (t.identifier === ctrl.joyId){
+      ctrl.cx = t.clientX;
+      ctrl.cy = t.clientY;
+      updateMoveAxis();
+    }
+  }
+}, { passive: false });
+
+function endJoyTouch(e){
+  e.preventDefault();
+  for (const t of e.changedTouches){
+    if (t.identifier === ctrl.joyId){
+      ctrl.joyActive = false;
+      ctrl.joyId = null;
+      ctrl.ax = ctrl.ay = 0;
+    }
+  }
+}
+canvas.addEventListener('touchend', endJoyTouch, { passive: false });
+canvas.addEventListener('touchcancel', endJoyTouch, { passive: false });
+
+window.addEventListener('keydown', e => {
+  ctrl.keys[e.code] = true;
+  if (match.active){
+    if (e.code === 'Space') fireFighter(match.player, false);
+    if (e.code === 'KeyE' || e.code === 'ShiftLeft') fireFighter(match.player, true);
+  }
+  updateMoveAxis();
+});
+window.addEventListener('keyup', e => {
+  ctrl.keys[e.code] = false;
+  updateMoveAxis();
+});
+
+/* ============================================================
+   ЛОГИКА МАТЧА FIGHT FRIZ
+   ============================================================ */
+const BOT_NAMES = ['Кристалл', 'Айсберг', 'Иней', 'Вьюга', 'Снежок_99', 'Морозко', 'Глянец'];
+
+const match = {
+  active: false,
+  player: null,
+  fighters: [],
+  boxes: [],
+  cubes: [],
+  bullets: [],
+  popups: [],
+  zoneRadius: ARENA_W * 0.72,
+  time: 0,
+  camera: { x: ARENA_W/2, y: ARENA_H/2 }
+};
+
+function createFighter(opts){
+  const st = getBrawlerStats(opts.brawlerId, opts.level);
+  return {
+    id: opts.id,
+    name: opts.name,
+    isPlayer: !!opts.isPlayer,
+    brawler: st,
+    x: opts.x,
+    y: opts.y,
+    angle: 0,
+    radius: 19,
+    hp: st.maxHp,
+    maxHp: st.maxHp,
+    cubes: 0,
+    ammo: 3,
+    maxAmmo: 3,
+    reloadTimer: 0,
+    superCharge: 0,
+    freezeTimer: 0,
+    dashTimer: 0,
+    dashVx: 0,
+    dashVy: 0,
+    burstQueue: [],
+    healDelay: 0,
+    inBush: false,
+    dead: false,
+    aiTimer: 0,
+    aiTargetX: opts.x,
+    aiTargetY: opts.y,
+    aiShotCd: rand(0.6, 1.3)
+  };
+}
+
+function startMatch(){
+  buildArenaMap();
+  match.active = true;
+  match.time = 0;
+  match.zoneRadius = ARENA_W * 0.72;
+  match.fighters = [];
+  match.boxes = [];
+  match.cubes = [];
+  match.bullets = [];
+  match.popups = [];
+  ctrl.joyActive = false;
+  ctrl.ax = ctrl.ay = 0;
+
+  const spawns = [
+    { x: 4*TILE, y: 4*TILE },
+    { x: ARENA_W - 4*TILE, y: 4*TILE },
+    { x: 4*TILE, y: ARENA_H - 4*TILE },
+    { x: ARENA_W - 4*TILE, y: ARENA_H - 4*TILE },
+    { x: ARENA_W * 0.5, y: 3.5*TILE },
+    { x: ARENA_W * 0.5, y: ARENA_H - 3.5*TILE }
+  ];
+
+  const p = createFighter({
+    id: 'player',
+    name: account.nick,
+    isPlayer: true,
+    brawlerId: account.selected,
+    level: account.levels[account.selected] || 1,
+    x: spawns[0].x,
+    y: spawns[0].y
+  });
+  match.player = p;
+  match.fighters.push(p);
+
+  for (let i=1; i<6; i++){
+    const bId = BRAWLER_ORDER[i % BRAWLER_ORDER.length];
+    const botLvl = clamp((account.levels[account.selected] || 1) + randInt(-1, 1), 1, 9);
+    match.fighters.push(createFighter({
+      id: 'bot_' + i,
+      name: BOT_NAMES[(i - 1) % BOT_NAMES.length],
+      isPlayer: false,
+      brawlerId: bId,
+      level: botLvl,
+      x: spawns[i].x,
+      y: spawns[i].y
+    }));
+  }
+
+  const boxCoords = [
+    [9, 5], [24, 5], [9, 28], [24, 28],
+    [16, 15], [17, 15], [16, 18], [17, 18],
+    [5, 16], [28, 16]
+  ];
+  for (const [cx, cy] of boxCoords){
+    match.boxes.push({
+      x: cx * TILE + TILE/2,
+      y: cy * TILE + TILE/2,
+      hp: 2400,
+      maxHp: 2400,
+      radius: 21
+    });
+  }
+
+  lobbyScreen.classList.add('hidden');
+  resultScreen.classList.add('hidden');
+  topBar.classList.add('hidden');
+  btnExitMatch.classList.remove('hidden');
+}
+
+function findAutoAimAngle(shooter){
+  let best = null;
+  let bestDist = shooter.brawler.range + 120;
+
+  for (const other of match.fighters){
+    if (other === shooter || other.dead) continue;
+    const d = dist(shooter.x, shooter.y, other.x, other.y);
+    if (other.inBush && d > 135) continue;
+    if (d < bestDist){
+      bestDist = d;
+      best = other;
+    }
+  }
+  if (!best){
+    for (const bx of match.boxes){
+      const d = dist(shooter.x, shooter.y, bx.x, bx.y);
+      if (d < bestDist){
+        bestDist = d;
+        best = bx;
+      }
+    }
+  }
+  return best ? Math.atan2(best.y - shooter.y, best.x - shooter.x) : shooter.angle;
+}
+
+function spawnVolley(f, ang, isSuper){
+  const b = f.brawler;
+  const cubeMult = 1 + f.cubes * 0.1;
+  const dmg = Math.round(b.dmg * cubeMult * (isSuper ? 1.25 : 1));
+  const pellets = isSuper && b.id === 'friz' ? 8 : b.pellets;
+  const spread  = isSuper && b.id === 'friz' ? 0.46 : b.spread;
+  const range   = isSuper ? b.range * 1.3 : b.range;
+  const freezeSec = isSuper ? b.freezeSec * 1.35 : b.freezeSec * 0.55;
+
+  for (let i=0; i<pellets; i++){
+    const offset = pellets === 1 ? rand(-spread, spread) : lerp(-spread/2, spread/2, i/(pellets-1)) + rand(-0.03, 0.03);
+    const a = ang + offset;
+    match.bullets.push({
+      ownerId: f.id,
+      x: f.x + Math.cos(a)*24,
+      y: f.y + Math.sin(a)*24,
+      vx: Math.cos(a) * b.bulletSpeed,
+      vy: Math.sin(a) * b.bulletSpeed,
+      traveled: 0,
+      maxRange: range,
+      dmg,
+      freezeSec,
+      isSuper,
+      color: isSuper ? '#67e8f9' : b.color
+    });
+  }
+}
+
+function fireFighter(f, isSuper){
+  if (!f || f.dead) return;
+  const b = f.brawler;
+
+  if (isSuper){
+    if (f.superCharge < 100) return;
+    f.superCharge = 0;
+    f.healDelay = 2.5;
+    const ang = findAutoAimAngle(f);
+    f.angle = ang;
+
+    if (f.isPlayer) sfx.play(720, 240, 0.24, 'sawtooth', 0.16);
+
+    if (b.id === 'titan'){
+      f.dashTimer = 0.36;
+      f.dashVx = Math.cos(ang) * 760;
+      f.dashVy = Math.sin(ang) * 760;
+      return;
+    }
+    if (b.id === 'volt'){
+      for (let i=0; i<8; i++) f.burstQueue.push({ delay: i * 0.055, isSuper: true });
+      return;
+    }
+    spawnVolley(f, ang, true);
+    return;
+  }
+
+  if (f.ammo < 1) return;
+  f.ammo -= 1;
+  f.healDelay = 2.6;
+  const ang = findAutoAimAngle(f);
+  f.angle = ang;
+
+  if (f.isPlayer) sfx.play(520, 200, 0.09, 'triangle', 0.12);
+
+  if (b.id === 'volt'){
+    for (let i=0; i<4; i++) f.burstQueue.push({ delay: i * 0.065, isSuper: false });
+  } else {
+    spawnVolley(f, ang, false);
+  }
+}
+
+function addPopup(x, y, text, color){
+  match.popups.push({ x, y, text, color, life: 0.85 });
+}
+
+function damageFighter(target, amount, attacker, freezeSec = 0){
+  if (target.dead) return;
+  target.hp -= amount;
+  target.healDelay = 3.0;
+  if (freezeSec > 0){
+    target.freezeTimer = Math.max(target.freezeTimer, freezeSec);
+  }
+  addPopup(target.x, target.y - 24, `-${amount}`, '#ff6b6b');
+
+  if (attacker && attacker !== target){
+    attacker.superCharge = clamp(attacker.superCharge + 18, 0, 100);
+  }
+
+  if (target.hp <= 0){
+    target.hp = 0;
+    target.dead = true;
+    if (target.isPlayer) sfx.play(220, 70, 0.35, 'sawtooth', 0.18);
+
+    const dropCount = Math.max(1, Math.min(4, 1 + Math.floor(target.cubes / 2)));
+    for (let i=0; i<dropCount; i++){
+      const a = (Math.PI * 2 / dropCount) * i;
+      match.cubes.push({
+        x: target.x + Math.cos(a)*20,
+        y: target.y + Math.sin(a)*20
+      });
+    }
+  }
+}
+
+function finishMatch(rank){
+  if (!match.active) return;
+  match.active = false;
+  btnExitMatch.classList.add('hidden');
+  topBar.classList.remove('hidden');
+
+  const trophyDelta = [10, 7, 4, 1, -2, -4][rank - 1] || 0;
+  const coinReward  = [45, 30, 20, 12, 8, 5][rank - 1] || 5;
+
+  account.trophies = Math.max(0, account.trophies + trophyDelta);
+  account.coins += coinReward;
+  saveAccount();
+
+  document.getElementById('resRank').textContent = `${rank} МЕСТО!`;
+  document.getElementById('resSub').textContent = rank === 1 ? 'Абсолютный чемпион FIGHT FRIZ!' : 'Матч завершён';
+  const sign = trophyDelta >= 0 ? '+' : '';
+  document.getElementById('resRewards').innerHTML = `
+    <div style="color:#ff9f43;font-size:15px;margin-bottom:4px">Кубки: ${sign}${trophyDelta} 🏆</div>
+    <div style="color:#f1c40f;font-size:15px">Монеты: +${coinReward} 🪙</div>
+  `;
+
+  renderLobby();
+  resultScreen.classList.remove('hidden');
+}
+
+btnExitMatch.onclick = () => {
+  if (!match.active) return;
+  const alive = match.fighters.filter(f => !f.dead).length;
+  finishMatch(Math.max(2, alive));
+};
+
+document.getElementById('btnBackLobby').onclick = () => {
+  resultScreen.classList.add('hidden');
+  lobbyScreen.classList.remove('hidden');
+  renderLobby();
+};
+
+btnPlayMatch.onclick = startMatch;
+
+function updateMatch(dt){
+  match.time += dt;
+  const center = ARENA_W * 0.5;
+  match.zoneRadius = Math.max(170, match.zoneRadius - 12 * dt);
+
+  for (const f of match.fighters){
+    if (f.dead) continue;
+
+    f.freezeTimer = Math.max(0, f.freezeTimer - dt);
+    const speedFactor = f.freezeTimer > 0 ? 0.42 : 1.0;
+
+    if (f.ammo < f.maxAmmo){
+      f.reloadTimer += dt * speedFactor;
+      if (f.reloadTimer >= f.brawler.reloadTime){
+        f.reloadTimer = 0;
+        f.ammo += 1;
+      }
+    } else {
+      f.reloadTimer = 0;
+    }
+
+    for (let i = f.burstQueue.length - 1; i >= 0; i--){
+      f.burstQueue[i].delay -= dt;
+      if (f.burstQueue[i].delay <= 0){
+        const item = f.burstQueue.splice(i, 1)[0];
+        spawnVolley(f, f.angle, item.isSuper);
+      }
+    }
+
+    f.healDelay = Math.max(0, f.healDelay - dt);
+    if (f.healDelay <= 0 && f.hp < f.maxHp){
+      f.hp = Math.min(f.maxHp, f.hp + Math.round(f.maxHp * 0.14 * dt));
+    }
+
+    if (f.dashTimer > 0){
+      f.dashTimer -= dt;
+      f.x += f.dashVx * dt;
+      f.y += f.dashVy * dt;
+      resolveArenaWalls(f, f.radius);
+      for (const other of match.fighters){
+        if (other !== f && !other.dead && dist(f.x, f.y, other.x, other.y) < f.radius + other.radius + 8){
+          damageFighter(other, Math.round(f.brawler.dmg * 2.2), f, 1.5);
+          f.dashTimer = 0;
+        }
+      }
+    } else if (f.isPlayer){
+      const mag = Math.hypot(ctrl.ax, ctrl.ay);
+      if (mag > 0.05){
+        f.x += ctrl.ax * f.brawler.speed * speedFactor * dt;
+        f.y += ctrl.ay * f.brawler.speed * speedFactor * dt;
+        f.angle = Math.atan2(ctrl.ay, ctrl.ax);
+      }
+      resolveArenaWalls(f, f.radius);
+    } else {
+      updateBotAI(f, dt, speedFactor);
+    }
+
+    f.inBush = tileAt(f.x, f.y) === T_BUSH;
+
+    for (let i = match.cubes.length - 1; i >= 0; i--){
+      const c = match.cubes[i];
+      if (dist(f.x, f.y, c.x, c.y) < f.radius + 16){
+        match.cubes.splice(i, 1);
+        f.cubes += 1;
+        f.maxHp += 350;
+        f.hp = Math.min(f.maxHp, f.hp + 500);
+        if (f.isPlayer){
+          sfx.play(600, 920, 0.12);
+          addPopup(f.x, f.y - 26, '+1 БАНКА СИЛЫ', '#2ecc71');
+        }
+      }
+    }
+
+    if (dist(f.x, f.y, center, center) > match.zoneRadius){
+      if (Math.floor(match.time * 2) !== Math.floor((match.time - dt) * 2)){
+        damageFighter(f, 350, null, 0);
+      }
+    }
+  }
+
+  for (let i = match.bullets.length - 1; i >= 0; i--){
+    const b = match.bullets[i];
+    const step = Math.hypot(b.vx * dt, b.vy * dt);
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.traveled += step;
+
+    let remove = b.traveled >= b.maxRange;
+    if (!remove && tileAt(b.x, b.y) === T_WALL && !b.isSuper){
+      remove = true;
+    }
+
+    if (!remove){
+      for (let j = match.boxes.length - 1; j >= 0; j--){
+        const bx = match.boxes[j];
+        if (dist(b.x, b.y, bx.x, bx.y) < bx.radius + 6){
+          bx.hp -= b.dmg;
+          addPopup(bx.x, bx.y - 18, `-${b.dmg}`, '#ffd166');
+          if (bx.hp <= 0){
+            match.boxes.splice(j, 1);
+            match.cubes.push({ x: bx.x, y: bx.y });
+          }
+          if (!b.isSuper){ remove = true; break; }
+        }
+      }
+    }
+
+    if (!remove){
+      const attacker = match.fighters.find(item => item.id === b.ownerId);
+      for (const f of match.fighters){
+        if (f.dead || f.id === b.ownerId) continue;
+        if (dist(b.x, b.y, f.x, f.y) < f.radius + 6){
+          damageFighter(f, b.dmg, attacker, b.freezeSec);
+          if (!b.isSuper){ remove = true; break; }
+        }
+      }
+    }
+
+    if (remove) match.bullets.splice(i, 1);
+  }
+
+  for (let i = match.popups.length - 1; i >= 0; i--){
+    match.popups[i].y -= 26 * dt;
+    match.popups[i].life -= dt;
+    if (match.popups[i].life <= 0) match.popups.splice(i, 1);
+  }
+
+  const alive = match.fighters.filter(f => !f.dead);
+  if (match.player.dead){
+    finishMatch(alive.length + 1);
+  } else if (alive.length <= 1){
+    finishMatch(1);
+  }
+}
+
+function updateBotAI(bot, dt, speedFactor){
+  bot.aiTimer -= dt;
+  bot.aiShotCd -= dt;
+  const center = ARENA_W * 0.5;
+
+  if (bot.aiTimer <= 0){
+    bot.aiTimer = rand(0.6, 1.3);
+    if (dist(bot.x, bot.y, center, center) > match.zoneRadius - 120){
+      bot.aiTargetX = center + rand(-120, 120);
+      bot.aiTargetY = center + rand(-120, 120);
+    } else if (match.cubes.length > 0 && Math.random() < 0.5){
+      const c = match.cubes[0];
+      bot.aiTargetX = c.x;
+      bot.aiTargetY = c.y;
+    } else {
+      bot.aiTargetX = clamp(bot.x + rand(-240, 240), 90, ARENA_W - 90);
+      bot.aiTargetY = clamp(bot.y + rand(-240, 240), 90, ARENA_H - 90);
+    }
+  }
+
+  const dx = bot.aiTargetX - bot.x;
+  const dy = bot.aiTargetY - bot.y;
+  const d = Math.hypot(dx, dy);
+  if (d > 10){
+    bot.x += (dx / d) * bot.brawler.speed * 0.88 * speedFactor * dt;
+    bot.y += (dy / d) * bot.brawler.speed * 0.88 * speedFactor * dt;
+    bot.angle = Math.atan2(dy, dx);
+  }
+  resolveArenaWalls(bot, bot.radius);
+
+  if (bot.aiShotCd <= 0 && bot.ammo >= 1){
+    bot.aiShotCd = rand(0.75, 1.45);
+    const ang = findAutoAimAngle(bot);
+    let hasTarget = false;
+    for (const o of match.fighters){
+      if (o !== bot && !o.dead && dist(bot.x, bot.y, o.x, o.y) < bot.brawler.range + 40){
+        if (!o.inBush || dist(bot.x, bot.y, o.x, o.y) < 130) hasTarget = true;
+      }
+    }
+    for (const bx of match.boxes){
+      if (dist(bot.x, bot.y, bx.x, bx.y) < bot.brawler.range) hasTarget = true;
+    }
+    if (hasTarget){
+      bot.angle = ang;
+      fireFighter(bot, bot.superCharge >= 100);
+    }
+  }
+}
+
+/* ============================================================
+   РЕНДЕР АРЕНЫ И HUD
+   ============================================================ */
+function renderMatch(){
+  const p = match.player;
+  if (!p) return;
+  match.camera.x = lerp(match.camera.x, p.x - CW/2, 0.16);
+  match.camera.y = lerp(match.camera.y, p.y - CH/2, 0.16);
+
+  ctx.save();
+  ctx.scale(DPR, DPR);
+  ctx.fillStyle = '#0b1624';
+  ctx.fillRect(0, 0, CW, CH);
+
+  ctx.translate(-match.camera.x, -match.camera.y);
+
+  for (let y=0; y<ARENA_ROWS; y++){
+    for (let x=0; x<ARENA_COLS; x++){
+      const t = arenaMap[y*ARENA_COLS + x];
+      const px = x * TILE, py = y * TILE;
+      if (t === T_WALL){
+        ctx.fillStyle = '#2d4663';
+        ctx.fillRect(px, py, TILE, TILE);
+        ctx.fillStyle = '#4b739e';
+        ctx.fillRect(px + 3, py + 3, TILE - 6, TILE - 10);
+      } else {
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#16283d' : '#122133';
+        ctx.fillRect(px, py, TILE, TILE);
+        if (t === T_BUSH){
+          ctx.fillStyle = '#0e7490';
+          ctx.beginPath();
+          ctx.arc(px + TILE/2, py + TILE/2, TILE * 0.48, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#22d3ee';
+          ctx.beginPath();
+          ctx.arc(px + TILE/2 - 4, py + TILE/2 - 4, TILE * 0.34, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  for (const bx of match.boxes){
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(bx.x - 19, bx.y - 19, 38, 38);
+    ctx.strokeStyle = '#7dd3fc';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(bx.x - 19, bx.y - 19, 38, 38);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(bx.hp, bx.x, bx.y - 24);
+  }
+
+  for (const c of match.cubes){
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#061322';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('❄️', c.x, c.y + 4);
+  }
+
+  for (const f of match.fighters){
+    if (f.dead) continue;
+    if (!f.isPlayer && f.inBush && dist(f.x, f.y, p.x, p.y) > 135) continue;
+
+    ctx.save();
+    if (f.inBush) ctx.globalAlpha = 0.55;
+
+    ctx.strokeStyle = f.freezeTimer > 0 ? '#67e8f9' : (f.isPlayer ? '#2ecc71' : '#f43f5e');
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.radius + 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = f.freezeTimer > 0 ? '#7dd3fc' : f.brawler.color;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#08101a';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(f.x, f.y);
+    ctx.lineTo(f.x + Math.cos(f.angle) * (f.radius + 8), f.y + Math.sin(f.angle) * (f.radius + 8));
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    const tag = (f.cubes > 0 ? ` ❄️${f.cubes}` : '') + (f.freezeTimer > 0 ? ' [ФРИЗ]' : '');
+    ctx.fillText(f.name + tag, f.x, f.y - 34);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(f.x - 24, f.y - 29, 48, 6);
+    ctx.fillStyle = f.isPlayer ? '#2ecc71' : '#f43f5e';
+    ctx.fillRect(f.x - 24, f.y - 29, 48 * clamp(f.hp / f.maxHp, 0, 1), 6);
+
+    if (f.isPlayer){
+      for (let s=0; s<3; s++){
+        const fill = f.ammo > s ? 1 : (f.ammo === s ? f.reloadTimer / f.brawler.reloadTime : 0);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(f.x - 24 + s*16.5, f.y - 21, 15, 4);
+        ctx.fillStyle = fill >= 1 ? '#38bdf8' : '#94a3b8';
+        ctx.fillRect(f.x - 24 + s*16.5, f.y - 21, 15 * fill, 4);
+      }
+    }
+    ctx.restore();
+  }
+
+  for (const b of match.bullets){
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.isSuper ? 7 : 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const center = ARENA_W * 0.5;
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(center, center, match.zoneRadius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  for (const pop of match.popups){
+    ctx.fillStyle = pop.color;
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(pop.text, pop.x, pop.y);
+  }
+
+  ctx.restore();
+
+  ctx.save();
+  ctx.scale(DPR, DPR);
+
+  const aliveCount = match.fighters.filter(f => !f.dead).length;
+  ctx.fillStyle = 'rgba(10,20,35,0.86)';
+  ctx.fillRect(14, 14, 142, 34);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(`FIGHT FRIZ • ${aliveCount}/6`, 24, 36);
+
+  if (ctrl.joyActive){
+    ctx.strokeStyle = 'rgba(125,211,252,0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(ctrl.ox, ctrl.oy, 54, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(56,189,248,0.65)';
+    ctx.beginPath();
+    ctx.arc(ctrl.cx, ctrl.cy, 24, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = p.ammo >= 1 ? 'rgba(244,63,94,0.88)' : 'rgba(127,140,141,0.45)';
+  ctx.beginPath();
+  ctx.arc(btnAttack.x, btnAttack.y, btnAttack.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('АТАКА', btnAttack.x, btnAttack.y + 4);
+
+  const superReady = p.superCharge >= 100;
+  ctx.fillStyle = superReady ? 'rgba(56,189,248,0.95)' : 'rgba(255,255,255,0.14)';
+  ctx.beginPath();
+  ctx.arc(btnSuper.x, btnSuper.y, btnSuper.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = superReady ? '#fff' : 'rgba(255,255,255,0.25)';
+  ctx.stroke();
+  ctx.fillStyle = superReady ? '#061322' : '#ccc';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText(superReady ? 'ФРИЗ-УЛЬТА!' : `${p.superCharge}%`, btnSuper.x, btnSuper.y + 4);
+  ctx.textAlign = 'left';
+
+  ctx.restore();
+}
+
+/* ============================================================
+   ИГРОВОЙ ЦИКЛ
+   ============================================================ */
+let lastTime = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+
+  if (match.active){
+    updateMatch(dt);
+    renderMatch();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+loadAccount();
+resizeCanvas();
+renderLobby();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
