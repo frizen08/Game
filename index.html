@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#09131f">
 <title>FIGHT FRIZ — Арена</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{width:100%;height:100%;overflow:hidden;background:#09131f;
@@ -56,9 +57,17 @@
   .btn-unlock{background:linear-gradient(135deg,#a855f7,#7e22ce);color:#fff;font-size:12px;padding:10px}
   .btn-sec{background:rgba(255,255,255,0.09);color:#fff;border:1px solid rgba(255,255,255,0.16);font-size:12px;padding:9px}
 
-  .modal-box{background:#101c2c;border:1px solid rgba(125,249,255,0.22);border-radius:18px;padding:18px;width:min(340px,92vw);text-align:center}
+  .lobby-row-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .lobby-row-btns .btn{margin-top:0}
+
+  .modal-box{background:#101c2c;border:1px solid rgba(125,249,255,0.22);border-radius:18px;padding:18px;width:min(360px,92vw);text-align:center}
   .nick-input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,249,255,0.3);
     background:#08101a;color:#fff;font-size:15px;margin:10px 0;text-align:center;outline:none;-webkit-user-select:text;user-select:text}
+
+  .lb-list{display:flex;flex-direction:column;gap:8px;max-height:58vh;overflow-y:auto;margin:12px 0;text-align:left;font-size:13px}
+  .lb-item{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:11px;
+    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)}
+  .lb-item.me{background:rgba(56,189,248,0.18);border-color:rgba(103,232,249,0.55)}
 
   #btnExitMatch{position:fixed;top:12px;right:12px;z-index:8;background:rgba(0,0,0,0.68);
     border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:10px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer}
@@ -90,7 +99,10 @@
 
     <button id="btnActionBrawler" class="btn btn-upg">УЛУЧШИТЬ БОЙЦА</button>
     <button id="btnPlayMatch" class="btn btn-play">В БОЙ!</button>
-    <button id="btnOpenProfile" class="btn btn-sec">Профиль аккаунта</button>
+    <div class="lobby-row-btns">
+      <button id="btnOpenLeaderboard" class="btn btn-sec">🏆 Топ</button>
+      <button id="btnOpenProfile" class="btn btn-sec">Профиль</button>
+    </div>
   </div>
 </div>
 
@@ -111,10 +123,19 @@
     <div style="font-size:11px;color:#93c5fd;margin-top:4px">ID аккаунта: <span id="accIdText">—</span></div>
     <input id="nickInput" class="nick-input" maxlength="16" placeholder="Твой ник...">
     <div style="font-size:11px;color:#cbd5e1;margin-bottom:10px;line-height:1.4">
-      Прогресс сохраняется в памяти устройства и готов к подключению облачной базы Supabase.
+      Прогресс синхронизируется с устройством и облачной базой Supabase.
     </div>
     <button id="btnSaveNick" class="btn btn-play">СОХРАНИТЬ НИК</button>
     <button id="btnCloseProfile" class="btn btn-sec">ЗАКРЫТЬ</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ТАБЛИЦЫ ЛИДЕРОВ -->
+<div id="leaderboardModal" class="screen hidden" style="z-index:25;background:rgba(6,11,20,0.88)">
+  <div class="modal-box">
+    <div style="font-size:17px;font-weight:900;color:#fbbf24">🏆 ТАБЛИЦА ЛИДЕРОВ</div>
+    <div id="leaderboardList" class="lb-list">Загрузка...</div>
+    <button id="btnCloseLeaderboard" class="btn btn-sec">ЗАКРЫТЬ</button>
   </div>
 </div>
 
@@ -134,6 +155,25 @@ if (tg){
     if (typeof tg.disableVerticalSwipes === 'function') tg.disableVerticalSwipes();
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) tgUser = tg.initDataUnsafe.user;
   } catch(_){}
+}
+
+/* ============================================================
+   SUPABASE ОБЛАЧНАЯ БАЗА
+   ============================================================ */
+const SUPABASE_URL = 'https://ozaobfsruofsuqbjzaux.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_J0eVOg_QDA4udVLMwvhcTA_u1fltq9q';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+function safeJsonParse(val, fallback){
+  if (!val) return fallback;
+  if (typeof val === 'object') return val;
+  try { return JSON.parse(val); } catch(_){ return fallback; }
+}
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
 }
 
 /* ============================================================
@@ -230,7 +270,7 @@ const BRAWLERS = {
 const BRAWLER_ORDER = ['friz', 'volt', 'titan'];
 
 /* ============================================================
-   АККАУНТ И СОХРАНЕНИЯ
+   АККАУНТ И ОБЛАЧНЫЕ СОХРАНЕНИЯ
    ============================================================ */
 const SAVE_KEY = 'fight_friz_account_v1';
 
@@ -244,13 +284,38 @@ const account = {
   levels:   { friz: 1,    volt: 1,     titan: 1 }
 };
 
-function saveAccount(){
+function saveAccountLocal(){
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(account));
   } catch(_){}
 }
 
-function loadAccount(){
+async function saveAccountCloud(){
+  if (!sb) return;
+  try {
+    const payload = {
+      id: account.id,
+      nick: account.nick,
+      trophies: Number(account.trophies || 0),
+      coins: Number(account.coins || 0),
+      selected: account.selected || 'friz',
+      unlocked: JSON.stringify(account.unlocked || { friz: true, volt: false, titan: false }),
+      levels: JSON.stringify(account.levels || { friz: 1, volt: 1, titan: 1 }),
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await sb.from('profiles').upsert(payload, { onConflict: 'id' });
+    if (error) console.warn('Supabase save error:', error.message);
+  } catch(err){
+    console.warn('Supabase save exception:', err);
+  }
+}
+
+function saveAccount(){
+  saveAccountLocal();
+  saveAccountCloud();
+}
+
+function loadAccountLocal(){
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return;
@@ -263,6 +328,50 @@ function loadAccount(){
     if (d.unlocked) account.unlocked = { ...account.unlocked, ...d.unlocked };
     if (d.levels) account.levels = { ...account.levels, ...d.levels };
   } catch(_){}
+}
+
+async function syncAccountWithCloud(){
+  if (!sb) return;
+  try {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', account.id)
+      .maybeSingle();
+
+    if (error){
+      console.warn('Supabase load error:', error.message);
+      return;
+    }
+
+    if (data){
+      const cloudTrophies = Number(data.trophies ?? 0);
+      const cloudCoins = Number(data.coins ?? 200);
+      const cloudUnlocked = safeJsonParse(data.unlocked, {});
+      const cloudLevels = safeJsonParse(data.levels, {});
+
+      if (cloudTrophies >= account.trophies && cloudCoins >= account.coins){
+        if (data.nick) account.nick = data.nick;
+        account.trophies = Math.max(0, cloudTrophies);
+        account.coins = Math.max(0, cloudCoins);
+        if (data.selected && BRAWLERS[data.selected]) account.selected = data.selected;
+        account.unlocked = { ...account.unlocked, ...cloudUnlocked };
+        account.levels = { ...account.levels, ...cloudLevels };
+        saveAccountLocal();
+      } else {
+        account.trophies = Math.max(account.trophies, cloudTrophies);
+        account.coins = Math.max(account.coins, cloudCoins);
+        account.unlocked = { ...account.unlocked, ...cloudUnlocked };
+        account.levels = { ...account.levels, ...cloudLevels };
+        saveAccount();
+      }
+      renderLobby();
+    } else {
+      await saveAccountCloud();
+    }
+  } catch(err){
+    console.warn('Supabase sync exception:', err);
+  }
 }
 
 function getBrawlerStats(id, lvlOverride = null){
@@ -278,11 +387,13 @@ function getBrawlerStats(id, lvlOverride = null){
 }
 
 /* ============================================================
-   ЛОББИ UI
+   ЛОББИ UI, ПРОФИЛЬ И ТАБЛИЦА ЛИДЕРОВ
    ============================================================ */
 const lobbyScreen      = document.getElementById('lobbyScreen');
 const resultScreen     = document.getElementById('resultScreen');
 const profileModal     = document.getElementById('profileModal');
+const leaderboardModal = document.getElementById('leaderboardModal');
+const leaderboardList  = document.getElementById('leaderboardList');
 const topBar           = document.getElementById('topBar');
 const btnExitMatch     = document.getElementById('btnExitMatch');
 const brawlersGrid     = document.getElementById('brawlersGrid');
@@ -384,6 +495,47 @@ document.getElementById('btnSaveNick').onclick = () => {
     renderLobby();
   }
   profileModal.classList.add('hidden');
+};
+
+document.getElementById('btnOpenLeaderboard').onclick = async () => {
+  leaderboardModal.classList.remove('hidden');
+  leaderboardList.textContent = 'Загрузка рейтинга...';
+  await saveAccountCloud();
+
+  if (!sb){
+    leaderboardList.textContent = 'Облачная база не подключена';
+    return;
+  }
+
+  const { data, error } = await sb
+    .from('profiles')
+    .select('id, nick, trophies, selected')
+    .order('trophies', { ascending: false })
+    .limit(15);
+
+  if (error || !data || data.length === 0){
+    leaderboardList.textContent = 'Пока нет записей в таблице лидеров';
+    return;
+  }
+
+  leaderboardList.innerHTML = data.map((row, idx) => {
+    const isMe = String(row.id) === String(account.id);
+    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+    const bName = BRAWLERS[row.selected]?.name || row.selected || 'Фриз';
+    return `
+      <div class="lb-item${isMe ? ' me' : ''}">
+        <div>
+          <b>${medal} ${escapeHtml(row.nick || 'Игрок')}</b>
+          <span style="opacity:0.65;font-size:11px;margin-left:5px">(${escapeHtml(bName)})</span>
+        </div>
+        <div style="font-weight:900;color:#fbbf24">🏆 ${Number(row.trophies || 0)}</div>
+      </div>
+    `;
+  }).join('');
+};
+
+document.getElementById('btnCloseLeaderboard').onclick = () => {
+  leaderboardModal.classList.add('hidden');
 };
 
 /* ============================================================
@@ -1252,9 +1404,10 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-loadAccount();
+loadAccountLocal();
 resizeCanvas();
 renderLobby();
+syncAccountWithCloud();
 requestAnimationFrame(loop);
 })();
 </script>
