@@ -227,7 +227,7 @@
     <div class="bs-left-nav">
       <button id="btnOpenBrawlers" class="bs-nav-btn btn-brawlers">
         <span>❄️ БОЙЦЫ</span>
-        <span style="font-size:10px;opacity:0.9">3/3</span>
+        <span id="brawlersCountBadge" style="font-size:10px;opacity:0.9">1/3</span>
       </button>
       <button id="btnOpenShop" class="bs-nav-btn btn-shop">
         <span>🛒 МАГАЗИН</span>
@@ -338,7 +338,12 @@ if (tg){
 
 const SUPABASE_URL = 'https://ozaobfsruofsuqbjzaux.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_J0eVOg_QDA4udVLMwvhcTA_u1fltq9q';
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let sb = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function'){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch(_){}
 
 function safeJsonParse(val, fallback){
   if (!val) return fallback;
@@ -682,20 +687,22 @@ const lobbyNet = {
 
 function initGlobalOnlineCounter(){
   if (!sb) return;
-  const ch = sb.channel('fight_friz_presence_all', {
-    config: { presence: { key: account.id } }
-  });
-  ch.on('presence', { event: 'sync' }, () => {
-    const keys = Object.keys(ch.presenceState());
-    lobbyNet.onlineCount = Math.max(1, keys.length);
-    document.getElementById('onlineCountText').textContent = String(lobbyNet.onlineCount);
-  });
-  ch.subscribe(async status => {
-    if (status === 'SUBSCRIBED'){
-      await ch.track({ nick: account.nick, selected: account.selected });
-    }
-  });
-  lobbyNet.globalCh = ch;
+  try {
+    const ch = sb.channel('fight_friz_presence_all', {
+      config: { presence: { key: account.id } }
+    });
+    ch.on('presence', { event: 'sync' }, () => {
+      const keys = Object.keys(ch.presenceState());
+      lobbyNet.onlineCount = Math.max(1, keys.length);
+      document.getElementById('onlineCountText').textContent = String(lobbyNet.onlineCount);
+    });
+    ch.subscribe(async status => {
+      if (status === 'SUBSCRIBED'){
+        try { await ch.track({ nick: account.nick, selected: account.selected }); } catch(_){}
+      }
+    });
+    lobbyNet.globalCh = ch;
+  } catch(_){}
 }
 
 function updateLobbyPresence(){
@@ -731,37 +738,41 @@ function joinParty(code){
   renderLobby();
   if (!sb) return;
 
-  const ch = sb.channel('fight_friz_party_' + clean.replace(/[^A-Z0-9_-]/g, '_'), {
-    config: { presence: { key: account.id } }
-  });
+  try {
+    const ch = sb.channel('fight_friz_party_' + clean.replace(/[^A-Z0-9_-]/g, '_'), {
+      config: { presence: { key: account.id } }
+    });
 
-  ch.on('presence', { event: 'sync' }, () => {
-    const state = ch.presenceState();
-    lobbyNet.partyMembers.clear();
-    for (const [k, arr] of Object.entries(state)){
-      if (k === account.id) continue;
-      lobbyNet.partyMembers.set(k, (arr && arr[0]) || { nick: 'Друг', selected: 'friz', level: 1 });
-    }
-    renderLobby();
-  });
+    ch.on('presence', { event: 'sync' }, () => {
+      const state = ch.presenceState();
+      lobbyNet.partyMembers.clear();
+      for (const [k, arr] of Object.entries(state)){
+        if (k === account.id) continue;
+        lobbyNet.partyMembers.set(k, (arr && arr[0]) || { nick: 'Друг', selected: 'friz', level: 1 });
+      }
+      renderLobby();
+    });
 
-  ch.on('broadcast', { event: 'start_party_match' }, ({ payload }) => {
-    if (!payload || !payload.matchKey || match.active) return;
-    partyModal.classList.add('hidden');
-    startMatch(payload.matchKey, 'ЛОББИ ' + clean, false);
-  });
+    ch.on('broadcast', { event: 'start_party_match' }, ({ payload }) => {
+      if (!payload || !payload.matchKey || match.active) return;
+      partyModal.classList.add('hidden');
+      startMatch(payload.matchKey, 'ЛОББИ ' + clean, false);
+    });
 
-  ch.subscribe(async status => {
-    if (status === 'SUBSCRIBED'){
-      await ch.track({
-        nick: account.nick,
-        selected: account.selected,
-        level: account.levels[account.selected] || 1
-      });
-    }
-  });
+    ch.subscribe(async status => {
+      if (status === 'SUBSCRIBED'){
+        try {
+          await ch.track({
+            nick: account.nick,
+            selected: account.selected,
+            level: account.levels[account.selected] || 1
+          });
+        } catch(_){}
+      }
+    });
 
-  lobbyNet.partyCh = ch;
+    lobbyNet.partyCh = ch;
+  } catch(_){}
 }
 
 const lobbyScreen      = document.getElementById('lobbyScreen');
@@ -781,6 +792,10 @@ function renderLobby(){
   document.getElementById('pillNick').textContent = '👤 ' + account.nick;
   document.getElementById('pillTrophies').textContent = '🏆 ' + account.trophies;
   document.getElementById('pillCoins').textContent = '🪙 ' + account.coins;
+
+  const unlockedCount = BRAWLER_ORDER.filter(id => !!account.unlocked[id]).length;
+  const cntBadge = document.getElementById('brawlersCountBadge');
+  if (cntBadge) cntBadge.textContent = `${unlockedCount}/${BRAWLER_ORDER.length}`;
 
   const selId = account.selected;
   const st = getBrawlerStats(selId);
@@ -945,16 +960,16 @@ document.getElementById('btnLeaveParty').onclick = () => {
   partyModal.classList.add('hidden');
 };
 
-document.getElementById('btnOpenProfile').onclick = () => {
+function openProfileModal(){
   document.getElementById('accIdText').textContent = account.id;
   document.getElementById('nickInput').value = account.nick;
   profileModal.classList.remove('hidden');
-};
-document.getElementById('pillNick').onclick = () => document.getElementById('btnOpenProfile').click();
+}
+document.getElementById('pillNick').onclick = openProfileModal;
 document.getElementById('btnCloseProfile').onclick = () => profileModal.classList.add('hidden');
 document.getElementById('btnSaveNick').onclick = () => {
   const val = document.getElementById('nickInput').value.trim();
-  if (val.length >= 2){
+  if (val.length >= 1){
     account.nick = val;
     saveAccount();
     renderLobby();
@@ -968,49 +983,60 @@ document.getElementById('btnOpenLeaderboard').onclick = async () => {
   await saveAccountCloud();
 
   if (!sb){
-    leaderboardList.textContent = 'Облачная база не подключена';
+    leaderboardList.innerHTML = `<div class="lb-item me"><div><b>🥇 ${escapeHtml(account.nick)}</b></div><div style="font-weight:900;color:#fbbf24">🏆 ${account.trophies}</div></div><div style="font-size:11px;color:#93c5fd;margin-top:6px">Облачная база не подключена — показан локальный результат.</div>`;
     return;
   }
 
-  const { data, error } = await sb
-    .from('profiles')
-    .select('id, nick, trophies, selected')
-    .order('trophies', { ascending: false })
-    .limit(15);
+  try {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('id, nick, trophies, selected')
+      .order('trophies', { ascending: false })
+      .limit(15);
 
-  if (error || !data || data.length === 0){
-    leaderboardList.textContent = 'Пока нет записей в таблице лидеров';
-    return;
-  }
+    if (error){
+      leaderboardList.innerHTML = `<div class="lb-item me"><div><b>🥇 ${escapeHtml(account.nick)}</b></div><div style="font-weight:900;color:#fbbf24">🏆 ${account.trophies}</div></div><div style="font-size:11px;color:#fda4af;margin-top:6px">Не удалось загрузить общий рейтинг (${escapeHtml(error.message || 'ошибка базы')}).</div>`;
+      return;
+    }
 
-  leaderboardList.innerHTML = data.map((row, idx) => {
-    const isMe = String(row.id) === String(account.id);
-    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
-    const bName = BRAWLERS[row.selected]?.name || row.selected || 'Фриз';
-    return `
-      <div class="lb-item${isMe ? ' me' : ''}">
-        <div>
-          <b>${medal} ${escapeHtml(row.nick || 'Игрок')}</b>
-          <span style="opacity:0.65;font-size:11px;margin-left:5px">(${escapeHtml(bName)})</span>
+    if (!data || data.length === 0){
+      leaderboardList.innerHTML = `<div class="lb-item me"><div><b>🥇 ${escapeHtml(account.nick)}</b></div><div style="font-weight:900;color:#fbbf24">🏆 ${account.trophies}</div></div>`;
+      return;
+    }
+
+    leaderboardList.innerHTML = data.map((row, idx) => {
+      const isMe = String(row.id) === String(account.id);
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+      const bName = BRAWLERS[row.selected]?.name || row.selected || 'Фриз';
+      return `
+        <div class="lb-item${isMe ? ' me' : ''}">
+          <div>
+            <b>${medal} ${escapeHtml(row.nick || 'Игрок')}</b>
+            <span style="opacity:0.65;font-size:11px;margin-left:5px">(${escapeHtml(bName)})</span>
+          </div>
+          <div style="font-weight:900;color:#fbbf24">🏆 ${Number(row.trophies || 0)}</div>
         </div>
-        <div style="font-weight:900;color:#fbbf24">🏆 ${Number(row.trophies || 0)}</div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  } catch(_){
+    leaderboardList.innerHTML = `<div class="lb-item me"><div><b>🥇 ${escapeHtml(account.nick)}</b></div><div style="font-weight:900;color:#fbbf24">🏆 ${account.trophies}</div></div>`;
+  }
 };
 document.getElementById('btnCloseLeaderboard').onclick = () => leaderboardModal.classList.add('hidden');
 
 document.getElementById('btnPlayOnline').onclick = () => {
   if (!account.unlocked[account.selected]) return;
-  if (lobbyNet.partyCode && lobbyNet.partyCh){
+  if (lobbyNet.partyCode){
     const matchKey = 'party_' + lobbyNet.partyCode;
-    try {
-      lobbyNet.partyCh.send({
-        type: 'broadcast',
-        event: 'start_party_match',
-        payload: { matchKey }
-      });
-    } catch(_){}
+    if (lobbyNet.partyCh){
+      try {
+        lobbyNet.partyCh.send({
+          type: 'broadcast',
+          event: 'start_party_match',
+          payload: { matchKey }
+        });
+      } catch(_){}
+    }
     startMatch(matchKey, 'ЛОББИ ' + lobbyNet.partyCode, false);
   } else {
     startMatch('online_global', 'ОНЛАЙН', false);
@@ -1098,8 +1124,8 @@ const btnSuper  = { x: 0, y: 0, r: 40 };
 
 function resizeCanvas(){
   DPR = Math.min(window.devicePixelRatio || 1, 2);
-  CW = window.innerWidth;
-  CH = window.innerHeight;
+  CW = window.innerWidth || 360;
+  CH = window.innerHeight || 640;
   canvas.width  = Math.floor(CW * DPR);
   canvas.height = Math.floor(CH * DPR);
   canvas.style.width  = CW + 'px';
@@ -1237,7 +1263,7 @@ const match = {
   zoneRadius: ARENA_W * 0.72,
   time: 0,
   netSyncTimer: 0,
-  camera: { x: ARENA_W/2, y: ARENA_H/2 }
+  camera: { x: 0, y: 0 }
 };
 
 function createFighter(opts){
@@ -1366,104 +1392,109 @@ function setupRealtimeChannel(channelKey){
   cleanupChannel();
   if (!sb || match.botsOnly) return;
 
-  const ch = sb.channel('fight_friz_' + channelKey.replace(/[^a-zA-Z0-9_-]/g, '_'), {
-    config: { presence: { key: match.peerId } }
-  });
+  try {
+    const ch = sb.channel('fight_friz_' + channelKey.replace(/[^a-zA-Z0-9_-]/g, '_'), {
+      config: { presence: { key: match.peerId } }
+    });
 
-  ch.on('presence', { event: 'sync' }, () => {
-    const state = ch.presenceState();
-    const activeKeys = Object.keys(state);
-    for (const k of activeKeys){
-      if (k === match.peerId) continue;
-      const meta = (state[k] && state[k][0]) || {};
-      if (!match.remotePeers.has(k)){
-        match.remotePeers.set(k, meta);
-      }
-    }
-    for (const existingKey of [...match.remotePeers.keys()]){
-      if (!activeKeys.includes(existingKey)){
-        match.remotePeers.delete(existingKey);
-        const remF = match.fighters.find(f => f.id === existingKey);
-        if (remF) remF.dead = true;
-      }
-    }
-    recomputeHost();
-  });
-
-  ch.on('broadcast', { event: 'state' }, ({ payload }) => {
-    if (!payload || payload.senderId === match.peerId || !match.active) return;
-    match.remotePeers.set(payload.senderId, payload);
-    const idx = 1 + [...match.remotePeers.keys()].indexOf(payload.senderId);
-    ensureFighterForPeer(payload.senderId, payload, idx);
-  });
-
-  ch.on('broadcast', { event: 'shoot' }, ({ payload }) => {
-    if (!payload || payload.senderId === match.peerId || !match.active) return;
-    for (const b of (payload.bullets || [])){
-      match.bullets.push({ ...b, isRemote: true });
-    }
-  });
-
-  ch.on('broadcast', { event: 'hit_fighter' }, ({ payload }) => {
-    if (!payload || !match.active) return;
-    const target = match.fighters.find(f => f.id === payload.targetId);
-    if (!target || target.dead) return;
-    target.hp = payload.hp;
-    target.freezeTimer = Math.max(target.freezeTimer, payload.freezeSec || 0);
-    addPopup(target.x, target.y - 24, `-${payload.dmg}`, '#ff6b6b');
-    if (payload.dead){
-      target.dead = true;
-      if (target.isPlayer) sfx.play(220, 70, 0.35, 'sawtooth', 0.18);
-    }
-  });
-
-  ch.on('broadcast', { event: 'world' }, ({ payload }) => {
-    if (!payload || payload.senderId === match.peerId || !match.active) return;
-    if (typeof payload.zoneRadius === 'number') match.zoneRadius = payload.zoneRadius;
-    if (Array.isArray(payload.boxes)) match.boxes = payload.boxes;
-    if (Array.isArray(payload.cubes)) match.cubes = payload.cubes;
-    if (Array.isArray(payload.bots)){
-      for (const bState of payload.bots){
-        let bf = match.fighters.find(f => f.id === bState.id);
-        if (!bf){
-          bf = createFighter({
-            id: bState.id,
-            name: bState.name,
-            isPlayer: false,
-            isBot: true,
-            brawlerId: BRAWLERS[bState.brawlerId] ? bState.brawlerId : 'friz',
-            level: bState.level || 1,
-            x: bState.x,
-            y: bState.y
-          });
-          match.fighters.push(bf);
+    ch.on('presence', { event: 'sync' }, () => {
+      const state = ch.presenceState();
+      const activeKeys = Object.keys(state);
+      for (const k of activeKeys){
+        if (k === match.peerId) continue;
+        const meta = (state[k] && state[k][0]) || {};
+        if (!match.remotePeers.has(k)){
+          match.remotePeers.set(k, meta);
         }
-        bf.x = lerp(bf.x, bState.x, 0.7);
-        bf.y = lerp(bf.y, bState.y, 0.7);
-        bf.angle = bState.angle;
-        bf.hp = bState.hp;
-        bf.maxHp = bState.maxHp;
-        bf.cubes = bState.cubes;
-        bf.freezeTimer = bState.freezeTimer;
-        bf.dead = bState.dead;
       }
-    }
-  });
+      for (const existingKey of [...match.remotePeers.keys()]){
+        if (!activeKeys.includes(existingKey)){
+          match.remotePeers.delete(existingKey);
+          const remF = match.fighters.find(f => f.id === existingKey);
+          if (remF) remF.dead = true;
+        }
+      }
+      recomputeHost();
+    });
 
-  ch.subscribe(async status => {
-    if (status === 'SUBSCRIBED'){
-      await ch.track({
-        nick: account.nick,
-        selected: account.selected,
-        level: account.levels[account.selected] || 1
-      });
-    }
-  });
+    ch.on('broadcast', { event: 'state' }, ({ payload }) => {
+      if (!payload || payload.senderId === match.peerId || !match.active) return;
+      match.remotePeers.set(payload.senderId, payload);
+      const idx = 1 + [...match.remotePeers.keys()].indexOf(payload.senderId);
+      ensureFighterForPeer(payload.senderId, payload, idx);
+    });
 
-  match.channel = ch;
+    ch.on('broadcast', { event: 'shoot' }, ({ payload }) => {
+      if (!payload || payload.senderId === match.peerId || !match.active) return;
+      for (const b of (payload.bullets || [])){
+        match.bullets.push({ ...b, isRemote: true });
+      }
+    });
+
+    ch.on('broadcast', { event: 'hit_fighter' }, ({ payload }) => {
+      if (!payload || !match.active) return;
+      const target = match.fighters.find(f => f.id === payload.targetId);
+      if (!target || target.dead) return;
+      target.hp = payload.hp;
+      target.freezeTimer = Math.max(target.freezeTimer, payload.freezeSec || 0);
+      addPopup(target.x, target.y - 24, `-${payload.dmg}`, '#ff6b6b');
+      if (payload.dead){
+        target.dead = true;
+        if (target.isPlayer) sfx.play(220, 70, 0.35, 'sawtooth', 0.18);
+      }
+    });
+
+    ch.on('broadcast', { event: 'world' }, ({ payload }) => {
+      if (!payload || payload.senderId === match.peerId || !match.active) return;
+      if (typeof payload.zoneRadius === 'number') match.zoneRadius = payload.zoneRadius;
+      if (Array.isArray(payload.boxes)) match.boxes = payload.boxes;
+      if (Array.isArray(payload.cubes)) match.cubes = payload.cubes;
+      if (Array.isArray(payload.bots)){
+        for (const bState of payload.bots){
+          let bf = match.fighters.find(f => f.id === bState.id);
+          if (!bf){
+            bf = createFighter({
+              id: bState.id,
+              name: bState.name,
+              isPlayer: false,
+              isBot: true,
+              brawlerId: BRAWLERS[bState.brawlerId] ? bState.brawlerId : 'friz',
+              level: bState.level || 1,
+              x: bState.x,
+              y: bState.y
+            });
+            match.fighters.push(bf);
+          }
+          bf.x = lerp(bf.x, bState.x, 0.7);
+          bf.y = lerp(bf.y, bState.y, 0.7);
+          bf.angle = bState.angle;
+          bf.hp = bState.hp;
+          bf.maxHp = bState.maxHp;
+          bf.cubes = bState.cubes;
+          bf.freezeTimer = bState.freezeTimer;
+          bf.dead = bState.dead;
+        }
+      }
+    });
+
+    ch.subscribe(async status => {
+      if (status === 'SUBSCRIBED'){
+        try {
+          await ch.track({
+            nick: account.nick,
+            selected: account.selected,
+            level: account.levels[account.selected] || 1
+          });
+        } catch(_){}
+      }
+    });
+
+    match.channel = ch;
+  } catch(_){}
 }
 
 function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН', botsOnly = false){
+  resizeCanvas();
   buildArenaMap();
   match.active = true;
   match.botsOnly = !!botsOnly;
@@ -1494,6 +1525,8 @@ function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН', bo
   });
   match.player = p;
   match.fighters.push(p);
+  match.camera.x = p.x - CW / 2;
+  match.camera.y = p.y - CH / 2;
 
   for (let i=1; i<6; i++){
     const bId = BRAWLER_ORDER[i % BRAWLER_ORDER.length];
@@ -1523,6 +1556,8 @@ function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН', bo
   lobbyScreen.classList.add('hidden');
   brawlersModal.classList.add('hidden');
   partyModal.classList.add('hidden');
+  profileModal.classList.add('hidden');
+  leaderboardModal.classList.add('hidden');
   resultScreen.classList.add('hidden');
   btnExitMatch.classList.remove('hidden');
 
@@ -1639,7 +1674,7 @@ function addPopup(x, y, text, color){
 
 function damageFighter(target, amount, attacker, freezeSec = 0){
   if (target.dead) return;
-  if (!match.isHost && !target.isPlayer) return;
+  if (!match.isHost && target.isBot) return;
 
   target.hp -= amount;
   target.healDelay = 3.0;
@@ -1837,7 +1872,7 @@ function updateMatch(dt){
       for (const f of match.fighters){
         if (f.dead || f.id === b.ownerId) continue;
         if (dist(b.x, b.y, f.x, f.y) < f.radius + 6){
-          if (match.isHost || f.isPlayer){
+          if (match.isHost || f.isPlayer || f.isBot){
             damageFighter(f, b.dmg, attacker, b.freezeSec);
           }
           if (!b.isSuper){ remove = true; break; }
@@ -2050,6 +2085,7 @@ function renderMatch(){
 
   ctx.save();
   ctx.scale(DPR, DPR);
+  ctx.textAlign = 'left';
 
   const aliveCount = match.fighters.filter(f => !f.dead).length;
   const humansCount = match.botsOnly ? 1 : (1 + match.remotePeers.size);
