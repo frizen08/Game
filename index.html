@@ -49,10 +49,11 @@
   .info-panel{background:rgba(0,0,0,0.38);border-radius:12px;padding:10px;margin-bottom:12px;text-align:left;font-size:12px;line-height:1.45}
   .info-row{display:flex;justify-content:space-between;margin-bottom:3px}
 
-  .btn{width:100%;padding:12px 14px;border:none;border-radius:13px;font-size:14px;font-weight:900;
+  .btn{width:100%;padding:12px 14px;border:none;border-radius:13px;font-size:13px;font-weight:900;
     letter-spacing:0.6px;cursor:pointer;text-transform:uppercase;transition:transform 0.1s;margin-top:6px}
   .btn:active{transform:scale(0.97)}
   .btn-play{background:linear-gradient(135deg,#38bdf8,#0284c7);color:#06101b;box-shadow:0 6px 20px rgba(56,189,248,0.35)}
+  .btn-friend{background:linear-gradient(135deg,#22d3ee,#0ea5e9);color:#06101b;font-size:12px;padding:10px}
   .btn-upg{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#09150d;font-size:12px;padding:10px}
   .btn-unlock{background:linear-gradient(135deg,#a855f7,#7e22ce);color:#fff;font-size:12px;padding:10px}
   .btn-sec{background:rgba(255,255,255,0.09);color:#fff;border:1px solid rgba(255,255,255,0.16);font-size:12px;padding:9px}
@@ -91,18 +92,33 @@
 <div id="lobbyScreen" class="screen">
   <div class="lobby-card">
     <div class="title">FIGHT FRIZ</div>
-    <div class="subtitle">МОРОЗНАЯ АРЕНА • 6 БОЙЦОВ • ЗАМОРОЗКА</div>
+    <div class="subtitle">МОРОЗНАЯ АРЕНА • ОНЛАЙН И КОМНАТЫ</div>
 
     <div id="brawlersGrid" class="brawlers-grid"></div>
 
     <div id="brawlerInfo" class="info-panel"></div>
 
     <button id="btnActionBrawler" class="btn btn-upg">УЛУЧШИТЬ БОЙЦА</button>
-    <button id="btnPlayMatch" class="btn btn-play">В БОЙ!</button>
+    <button id="btnPlayOnline" class="btn btn-play">🌐 ОНЛАЙН-БОЙ</button>
+    <button id="btnOpenFriendModal" class="btn btn-friend">👥 ИГРАТЬ С ДРУГОМ</button>
     <div class="lobby-row-btns">
       <button id="btnOpenLeaderboard" class="btn btn-sec">🏆 Топ</button>
       <button id="btnOpenProfile" class="btn btn-sec">Профиль</button>
     </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА ПРИВАТНОЙ КОМНАТЫ -->
+<div id="friendModal" class="screen hidden" style="z-index:25;background:rgba(6,11,20,0.88)">
+  <div class="modal-box">
+    <div style="font-size:17px;font-weight:900;color:#67e8f9">👥 ИГРА С ДРУГОМ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:6px;line-height:1.4">
+      Создай комнату и отправь код другу или введи код его комнаты. Свободные места займут боты.
+    </div>
+    <button id="btnCreateRoom" class="btn btn-play">СОЗДАТЬ КОМНАТУ</button>
+    <input id="roomCodeInput" class="nick-input" maxlength="14" placeholder="Код комнаты (напр. FRIZ-1234)">
+    <button id="btnJoinRoom" class="btn btn-upg">ВОЙТИ ПО КОДУ</button>
+    <button id="btnCloseFriendModal" class="btn btn-sec">ЗАКРЫТЬ</button>
   </div>
 </div>
 
@@ -158,7 +174,7 @@ if (tg){
 }
 
 /* ============================================================
-   SUPABASE ОБЛАЧНАЯ БАЗА
+   SUPABASE ОБЛАЧНАЯ БАЗА + REALTIME
    ============================================================ */
 const SUPABASE_URL = 'https://ozaobfsruofsuqbjzaux.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_J0eVOg_QDA4udVLMwvhcTA_u1fltq9q';
@@ -387,11 +403,13 @@ function getBrawlerStats(id, lvlOverride = null){
 }
 
 /* ============================================================
-   ЛОББИ UI, ПРОФИЛЬ И ТАБЛИЦА ЛИДЕРОВ
+   ЛОББИ UI, ПРОФИЛЬ, КОМНАТЫ И ТАБЛИЦА ЛИДЕРОВ
    ============================================================ */
 const lobbyScreen      = document.getElementById('lobbyScreen');
 const resultScreen     = document.getElementById('resultScreen');
 const profileModal     = document.getElementById('profileModal');
+const friendModal      = document.getElementById('friendModal');
+const roomCodeInput    = document.getElementById('roomCodeInput');
 const leaderboardModal = document.getElementById('leaderboardModal');
 const leaderboardList  = document.getElementById('leaderboardList');
 const topBar           = document.getElementById('topBar');
@@ -399,7 +417,7 @@ const btnExitMatch     = document.getElementById('btnExitMatch');
 const brawlersGrid     = document.getElementById('brawlersGrid');
 const brawlerInfo      = document.getElementById('brawlerInfo');
 const btnActionBrawler = document.getElementById('btnActionBrawler');
-const btnPlayMatch     = document.getElementById('btnPlayMatch');
+const btnPlayOnline    = document.getElementById('btnPlayOnline');
 
 function renderLobby(){
   document.getElementById('pillNick').textContent = '👤 ' + account.nick;
@@ -442,13 +460,17 @@ function renderLobby(){
   if (!unlocked){
     btnActionBrawler.className = 'btn btn-unlock';
     btnActionBrawler.textContent = `ОТКРЫТЬ БОЙЦА ЗА ${st.unlockCost} 🪙`;
-    btnPlayMatch.disabled = true;
-    btnPlayMatch.style.opacity = '0.45';
+    btnPlayOnline.disabled = true;
+    btnPlayOnline.style.opacity = '0.45';
+    document.getElementById('btnOpenFriendModal').disabled = true;
+    document.getElementById('btnOpenFriendModal').style.opacity = '0.45';
   } else {
     btnActionBrawler.className = 'btn btn-upg';
     btnActionBrawler.textContent = st.level >= 9 ? 'МАКСИМАЛЬНЫЙ УРОВЕНЬ (9)' : `УЛУЧШИТЬ ДО УР.${st.level + 1} (${upgCost} 🪙)`;
-    btnPlayMatch.disabled = false;
-    btnPlayMatch.style.opacity = '1';
+    btnPlayOnline.disabled = false;
+    btnPlayOnline.style.opacity = '1';
+    document.getElementById('btnOpenFriendModal').disabled = false;
+    document.getElementById('btnOpenFriendModal').style.opacity = '1';
   }
 }
 
@@ -495,6 +517,26 @@ document.getElementById('btnSaveNick').onclick = () => {
     renderLobby();
   }
   profileModal.classList.add('hidden');
+};
+
+document.getElementById('btnOpenFriendModal').onclick = () => {
+  roomCodeInput.value = '';
+  friendModal.classList.remove('hidden');
+};
+document.getElementById('btnCloseFriendModal').onclick = () => {
+  friendModal.classList.add('hidden');
+};
+document.getElementById('btnCreateRoom').onclick = () => {
+  const code = 'FRIZ-' + Math.floor(1000 + Math.random() * 9000);
+  friendModal.classList.add('hidden');
+  startMatch('room:' + code, code);
+};
+document.getElementById('btnJoinRoom').onclick = () => {
+  const raw = roomCodeInput.value.trim().toUpperCase();
+  if (!raw) return;
+  const clean = raw.startsWith('FRIZ-') ? raw : 'FRIZ-' + raw.replace(/[^A-Z0-9_-]/g, '');
+  friendModal.classList.add('hidden');
+  startMatch('room:' + clean, clean);
 };
 
 document.getElementById('btnOpenLeaderboard').onclick = async () => {
@@ -727,12 +769,31 @@ window.addEventListener('keyup', e => {
 });
 
 /* ============================================================
-   ЛОГИКА МАТЧА FIGHT FRIZ
+   МУЛЬТИПЛЕЕР И ЛОГИКА МАТЧА FIGHT FRIZ
    ============================================================ */
 const BOT_NAMES = ['Кристалл', 'Айсберг', 'Иней', 'Вьюга', 'Снежок_99', 'Морозко', 'Глянец'];
+const SPAWNS = [
+  { x: 4*TILE, y: 4*TILE },
+  { x: ARENA_W - 4*TILE, y: 4*TILE },
+  { x: 4*TILE, y: ARENA_H - 4*TILE },
+  { x: ARENA_W - 4*TILE, y: ARENA_H - 4*TILE },
+  { x: ARENA_W * 0.5, y: 3.5*TILE },
+  { x: ARENA_W * 0.5, y: ARENA_H - 3.5*TILE }
+];
+const BOX_COORDS = [
+  [9, 5], [24, 5], [9, 28], [24, 28],
+  [16, 15], [17, 15], [16, 18], [17, 18],
+  [5, 16], [28, 16]
+];
 
 const match = {
   active: false,
+  channelKey: 'online_global',
+  roomLabel: 'ОНЛАЙН',
+  channel: null,
+  isHost: false,
+  peerId: '',
+  remotePeers: new Map(),
   player: null,
   fighters: [],
   boxes: [],
@@ -741,6 +802,7 @@ const match = {
   popups: [],
   zoneRadius: ARENA_W * 0.72,
   time: 0,
+  netSyncTimer: 0,
   camera: { x: ARENA_W/2, y: ARENA_H/2 }
 };
 
@@ -750,6 +812,7 @@ function createFighter(opts){
     id: opts.id,
     name: opts.name,
     isPlayer: !!opts.isPlayer,
+    isBot: !!opts.isBot,
     brawler: st,
     x: opts.x,
     y: opts.y,
@@ -777,10 +840,204 @@ function createFighter(opts){
   };
 }
 
-function startMatch(){
+function cleanupChannel(){
+  if (match.channel && sb){
+    try { sb.removeChannel(match.channel); } catch(_){}
+  }
+  match.channel = null;
+  match.remotePeers.clear();
+}
+
+function recomputeHost(){
+  const ids = [match.peerId, ...match.remotePeers.keys()].filter(Boolean).sort();
+  match.isHost = ids.length === 0 || ids[0] === match.peerId;
+  syncBotsWithHumans();
+}
+
+function ensureFighterForPeer(peerId, info, slotIdx = 0){
+  let f = match.fighters.find(item => item.id === peerId);
+  const sp = SPAWNS[slotIdx % SPAWNS.length];
+  if (!f){
+    f = createFighter({
+      id: peerId,
+      name: info.nick || 'Игрок',
+      isPlayer: false,
+      isBot: false,
+      brawlerId: BRAWLERS[info.selected] ? info.selected : 'friz',
+      level: clamp(Number(info.level || 1), 1, 9),
+      x: typeof info.x === 'number' ? info.x : sp.x,
+      y: typeof info.y === 'number' ? info.y : sp.y
+    });
+    match.fighters.push(f);
+  } else {
+    f.name = info.nick || f.name;
+    if (typeof info.x === 'number') f.x = lerp(f.x, info.x, 0.65);
+    if (typeof info.y === 'number') f.y = lerp(f.y, info.y, 0.65);
+    if (typeof info.angle === 'number') f.angle = info.angle;
+    if (typeof info.hp === 'number') f.hp = info.hp;
+    if (typeof info.maxHp === 'number') f.maxHp = info.maxHp;
+    if (typeof info.cubes === 'number') f.cubes = info.cubes;
+    if (typeof info.freezeTimer === 'number') f.freezeTimer = info.freezeTimer;
+    if (typeof info.dead === 'boolean') f.dead = info.dead;
+  }
+}
+
+function syncBotsWithHumans(){
+  const humanCount = 1 + match.remotePeers.size;
+  const targetBots = Math.max(0, 6 - humanCount);
+  const currentBots = match.fighters.filter(f => f.isBot && !f.dead);
+
+  if (currentBots.length > targetBots){
+    const excess = currentBots.length - targetBots;
+    let removed = 0;
+    for (let i = match.fighters.length - 1; i >= 0 && removed < excess; i--){
+      if (match.fighters[i].isBot){
+        match.fighters.splice(i, 1);
+        removed++;
+      }
+    }
+  } else if (currentBots.length < targetBots){
+    const needed = targetBots - currentBots.length;
+    for (let n = 0; n < needed; n++){
+      const idx = match.fighters.length;
+      const sp = SPAWNS[idx % SPAWNS.length];
+      const bId = BRAWLER_ORDER[idx % BRAWLER_ORDER.length];
+      const botLvl = clamp((account.levels[account.selected] || 1) + randInt(-1, 1), 1, 9);
+      match.fighters.push(createFighter({
+        id: `bot_${match.peerId}_${Date.now()}_${idx}_${n}`,
+        name: BOT_NAMES[(idx + n) % BOT_NAMES.length],
+        isPlayer: false,
+        isBot: true,
+        brawlerId: bId,
+        level: botLvl,
+        x: sp.x,
+        y: sp.y
+      }));
+    }
+  }
+}
+
+function sendBroadcast(event, payload){
+  if (!match.channel || !match.active) return;
+  try {
+    match.channel.send({
+      type: 'broadcast',
+      event,
+      payload: { ...payload, senderId: match.peerId }
+    });
+  } catch(_){}
+}
+
+function setupRealtimeChannel(channelKey){
+  cleanupChannel();
+  if (!sb) return;
+
+  const ch = sb.channel('fight_friz_' + channelKey.replace(/[^a-zA-Z0-9_-]/g, '_'), {
+    config: { presence: { key: match.peerId } }
+  });
+
+  ch.on('presence', { event: 'sync' }, () => {
+    const state = ch.presenceState();
+    const activeKeys = Object.keys(state);
+    for (const k of activeKeys){
+      if (k === match.peerId) continue;
+      const meta = (state[k] && state[k][0]) || {};
+      if (!match.remotePeers.has(k)){
+        match.remotePeers.set(k, meta);
+      }
+    }
+    for (const existingKey of [...match.remotePeers.keys()]){
+      if (!activeKeys.includes(existingKey)){
+        match.remotePeers.delete(existingKey);
+        const remF = match.fighters.find(f => f.id === existingKey);
+        if (remF) remF.dead = true;
+      }
+    }
+    recomputeHost();
+  });
+
+  ch.on('broadcast', { event: 'state' }, ({ payload }) => {
+    if (!payload || payload.senderId === match.peerId || !match.active) return;
+    match.remotePeers.set(payload.senderId, payload);
+    const idx = 1 + [...match.remotePeers.keys()].indexOf(payload.senderId);
+    ensureFighterForPeer(payload.senderId, payload, idx);
+  });
+
+  ch.on('broadcast', { event: 'shoot' }, ({ payload }) => {
+    if (!payload || payload.senderId === match.peerId || !match.active) return;
+    for (const b of (payload.bullets || [])){
+      match.bullets.push({ ...b, isRemote: true });
+    }
+  });
+
+  ch.on('broadcast', { event: 'hit_fighter' }, ({ payload }) => {
+    if (!payload || !match.active) return;
+    const target = match.fighters.find(f => f.id === payload.targetId);
+    if (!target || target.dead) return;
+    target.hp = payload.hp;
+    target.freezeTimer = Math.max(target.freezeTimer, payload.freezeSec || 0);
+    addPopup(target.x, target.y - 24, `-${payload.dmg}`, '#ff6b6b');
+    if (payload.dead){
+      target.dead = true;
+      if (target.isPlayer) sfx.play(220, 70, 0.35, 'sawtooth', 0.18);
+    }
+  });
+
+  ch.on('broadcast', { event: 'world' }, ({ payload }) => {
+    if (!payload || payload.senderId === match.peerId || !match.active) return;
+    if (typeof payload.zoneRadius === 'number') match.zoneRadius = payload.zoneRadius;
+    if (Array.isArray(payload.boxes)) match.boxes = payload.boxes;
+    if (Array.isArray(payload.cubes)) match.cubes = payload.cubes;
+    if (Array.isArray(payload.bots)){
+      for (const bState of payload.bots){
+        let bf = match.fighters.find(f => f.id === bState.id);
+        if (!bf){
+          bf = createFighter({
+            id: bState.id,
+            name: bState.name,
+            isPlayer: false,
+            isBot: true,
+            brawlerId: BRAWLERS[bState.brawlerId] ? bState.brawlerId : 'friz',
+            level: bState.level || 1,
+            x: bState.x,
+            y: bState.y
+          });
+          match.fighters.push(bf);
+        }
+        bf.x = lerp(bf.x, bState.x, 0.7);
+        bf.y = lerp(bf.y, bState.y, 0.7);
+        bf.angle = bState.angle;
+        bf.hp = bState.hp;
+        bf.maxHp = bState.maxHp;
+        bf.cubes = bState.cubes;
+        bf.freezeTimer = bState.freezeTimer;
+        bf.dead = bState.dead;
+      }
+    }
+  });
+
+  ch.subscribe(async status => {
+    if (status === 'SUBSCRIBED'){
+      await ch.track({
+        nick: account.nick,
+        selected: account.selected,
+        level: account.levels[account.selected] || 1
+      });
+    }
+  });
+
+  match.channel = ch;
+}
+
+function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН'){
   buildArenaMap();
   match.active = true;
+  match.channelKey = channelKey;
+  match.roomLabel = roomLabel;
+  match.peerId = `${account.id}_${Math.floor(1000 + Math.random()*9000)}`;
+  match.isHost = true;
   match.time = 0;
+  match.netSyncTimer = 0;
   match.zoneRadius = ARENA_W * 0.72;
   match.fighters = [];
   match.boxes = [];
@@ -790,23 +1047,15 @@ function startMatch(){
   ctrl.joyActive = false;
   ctrl.ax = ctrl.ay = 0;
 
-  const spawns = [
-    { x: 4*TILE, y: 4*TILE },
-    { x: ARENA_W - 4*TILE, y: 4*TILE },
-    { x: 4*TILE, y: ARENA_H - 4*TILE },
-    { x: ARENA_W - 4*TILE, y: ARENA_H - 4*TILE },
-    { x: ARENA_W * 0.5, y: 3.5*TILE },
-    { x: ARENA_W * 0.5, y: ARENA_H - 3.5*TILE }
-  ];
-
   const p = createFighter({
-    id: 'player',
+    id: match.peerId,
     name: account.nick,
     isPlayer: true,
+    isBot: false,
     brawlerId: account.selected,
     level: account.levels[account.selected] || 1,
-    x: spawns[0].x,
-    y: spawns[0].y
+    x: SPAWNS[0].x,
+    y: SPAWNS[0].y
   });
   match.player = p;
   match.fighters.push(p);
@@ -815,22 +1064,18 @@ function startMatch(){
     const bId = BRAWLER_ORDER[i % BRAWLER_ORDER.length];
     const botLvl = clamp((account.levels[account.selected] || 1) + randInt(-1, 1), 1, 9);
     match.fighters.push(createFighter({
-      id: 'bot_' + i,
+      id: `bot_${match.peerId}_${i}`,
       name: BOT_NAMES[(i - 1) % BOT_NAMES.length],
       isPlayer: false,
+      isBot: true,
       brawlerId: bId,
       level: botLvl,
-      x: spawns[i].x,
-      y: spawns[i].y
+      x: SPAWNS[i].x,
+      y: SPAWNS[i].y
     }));
   }
 
-  const boxCoords = [
-    [9, 5], [24, 5], [9, 28], [24, 28],
-    [16, 15], [17, 15], [16, 18], [17, 18],
-    [5, 16], [28, 16]
-  ];
-  for (const [cx, cy] of boxCoords){
+  for (const [cx, cy] of BOX_COORDS){
     match.boxes.push({
       x: cx * TILE + TILE/2,
       y: cy * TILE + TILE/2,
@@ -844,6 +1089,8 @@ function startMatch(){
   resultScreen.classList.add('hidden');
   topBar.classList.add('hidden');
   btnExitMatch.classList.remove('hidden');
+
+  setupRealtimeChannel(channelKey);
 }
 
 function findAutoAimAngle(shooter){
@@ -880,10 +1127,11 @@ function spawnVolley(f, ang, isSuper){
   const range   = isSuper ? b.range * 1.3 : b.range;
   const freezeSec = isSuper ? b.freezeSec * 1.35 : b.freezeSec * 0.55;
 
+  const created = [];
   for (let i=0; i<pellets; i++){
     const offset = pellets === 1 ? rand(-spread, spread) : lerp(-spread/2, spread/2, i/(pellets-1)) + rand(-0.03, 0.03);
     const a = ang + offset;
-    match.bullets.push({
+    const bullet = {
       ownerId: f.id,
       x: f.x + Math.cos(a)*24,
       y: f.y + Math.sin(a)*24,
@@ -895,7 +1143,13 @@ function spawnVolley(f, ang, isSuper){
       freezeSec,
       isSuper,
       color: isSuper ? '#67e8f9' : b.color
-    });
+    };
+    match.bullets.push(bullet);
+    created.push(bullet);
+  }
+
+  if (f.isPlayer && created.length){
+    sendBroadcast('shoot', { bullets: created });
   }
 }
 
@@ -947,6 +1201,8 @@ function addPopup(x, y, text, color){
 
 function damageFighter(target, amount, attacker, freezeSec = 0){
   if (target.dead) return;
+  if (!match.isHost && !target.isPlayer) return;
+
   target.hp -= amount;
   target.healDelay = 3.0;
   if (freezeSec > 0){
@@ -958,9 +1214,11 @@ function damageFighter(target, amount, attacker, freezeSec = 0){
     attacker.superCharge = clamp(attacker.superCharge + 18, 0, 100);
   }
 
+  let becameDead = false;
   if (target.hp <= 0){
     target.hp = 0;
     target.dead = true;
+    becameDead = true;
     if (target.isPlayer) sfx.play(220, 70, 0.35, 'sawtooth', 0.18);
 
     const dropCount = Math.max(1, Math.min(4, 1 + Math.floor(target.cubes / 2)));
@@ -972,11 +1230,20 @@ function damageFighter(target, amount, attacker, freezeSec = 0){
       });
     }
   }
+
+  sendBroadcast('hit_fighter', {
+    targetId: target.id,
+    hp: target.hp,
+    dmg: amount,
+    freezeSec,
+    dead: becameDead
+  });
 }
 
 function finishMatch(rank){
   if (!match.active) return;
   match.active = false;
+  cleanupChannel();
   btnExitMatch.classList.add('hidden');
   topBar.classList.remove('hidden');
 
@@ -988,7 +1255,7 @@ function finishMatch(rank){
   saveAccount();
 
   document.getElementById('resRank').textContent = `${rank} МЕСТО!`;
-  document.getElementById('resSub').textContent = rank === 1 ? 'Абсолютный чемпион FIGHT FRIZ!' : 'Матч завершён';
+  document.getElementById('resSub').textContent = rank === 1 ? 'Абсолютный чемпион FIGHT FRIZ!' : `Режим: ${match.roomLabel}`;
   const sign = trophyDelta >= 0 ? '+' : '';
   document.getElementById('resRewards').innerHTML = `
     <div style="color:#ff9f43;font-size:15px;margin-bottom:4px">Кубки: ${sign}${trophyDelta} 🏆</div>
@@ -1011,63 +1278,69 @@ document.getElementById('btnBackLobby').onclick = () => {
   renderLobby();
 };
 
-btnPlayMatch.onclick = startMatch;
+btnPlayOnline.onclick = () => startMatch('online_global', 'ОНЛАЙН');
 
 function updateMatch(dt){
   match.time += dt;
+  match.netSyncTimer += dt;
   const center = ARENA_W * 0.5;
-  match.zoneRadius = Math.max(170, match.zoneRadius - 12 * dt);
+  if (match.isHost){
+    match.zoneRadius = Math.max(170, match.zoneRadius - 12 * dt);
+  }
 
   for (const f of match.fighters){
     if (f.dead) continue;
+    const remoteHuman = !f.isPlayer && !f.isBot;
 
     f.freezeTimer = Math.max(0, f.freezeTimer - dt);
     const speedFactor = f.freezeTimer > 0 ? 0.42 : 1.0;
 
-    if (f.ammo < f.maxAmmo){
-      f.reloadTimer += dt * speedFactor;
-      if (f.reloadTimer >= f.brawler.reloadTime){
+    if (!remoteHuman){
+      if (f.ammo < f.maxAmmo){
+        f.reloadTimer += dt * speedFactor;
+        if (f.reloadTimer >= f.brawler.reloadTime){
+          f.reloadTimer = 0;
+          f.ammo += 1;
+        }
+      } else {
         f.reloadTimer = 0;
-        f.ammo += 1;
       }
-    } else {
-      f.reloadTimer = 0;
-    }
 
-    for (let i = f.burstQueue.length - 1; i >= 0; i--){
-      f.burstQueue[i].delay -= dt;
-      if (f.burstQueue[i].delay <= 0){
-        const item = f.burstQueue.splice(i, 1)[0];
-        spawnVolley(f, f.angle, item.isSuper);
-      }
-    }
-
-    f.healDelay = Math.max(0, f.healDelay - dt);
-    if (f.healDelay <= 0 && f.hp < f.maxHp){
-      f.hp = Math.min(f.maxHp, f.hp + Math.round(f.maxHp * 0.14 * dt));
-    }
-
-    if (f.dashTimer > 0){
-      f.dashTimer -= dt;
-      f.x += f.dashVx * dt;
-      f.y += f.dashVy * dt;
-      resolveArenaWalls(f, f.radius);
-      for (const other of match.fighters){
-        if (other !== f && !other.dead && dist(f.x, f.y, other.x, other.y) < f.radius + other.radius + 8){
-          damageFighter(other, Math.round(f.brawler.dmg * 2.2), f, 1.5);
-          f.dashTimer = 0;
+      for (let i = f.burstQueue.length - 1; i >= 0; i--){
+        f.burstQueue[i].delay -= dt;
+        if (f.burstQueue[i].delay <= 0){
+          const item = f.burstQueue.splice(i, 1)[0];
+          spawnVolley(f, f.angle, item.isSuper);
         }
       }
-    } else if (f.isPlayer){
-      const mag = Math.hypot(ctrl.ax, ctrl.ay);
-      if (mag > 0.05){
-        f.x += ctrl.ax * f.brawler.speed * speedFactor * dt;
-        f.y += ctrl.ay * f.brawler.speed * speedFactor * dt;
-        f.angle = Math.atan2(ctrl.ay, ctrl.ax);
+
+      f.healDelay = Math.max(0, f.healDelay - dt);
+      if (f.healDelay <= 0 && f.hp < f.maxHp){
+        f.hp = Math.min(f.maxHp, f.hp + Math.round(f.maxHp * 0.14 * dt));
       }
-      resolveArenaWalls(f, f.radius);
-    } else {
-      updateBotAI(f, dt, speedFactor);
+
+      if (f.dashTimer > 0){
+        f.dashTimer -= dt;
+        f.x += f.dashVx * dt;
+        f.y += f.dashVy * dt;
+        resolveArenaWalls(f, f.radius);
+        for (const other of match.fighters){
+          if (other !== f && !other.dead && dist(f.x, f.y, other.x, other.y) < f.radius + other.radius + 8){
+            damageFighter(other, Math.round(f.brawler.dmg * 2.2), f, 1.5);
+            f.dashTimer = 0;
+          }
+        }
+      } else if (f.isPlayer){
+        const mag = Math.hypot(ctrl.ax, ctrl.ay);
+        if (mag > 0.05){
+          f.x += ctrl.ax * f.brawler.speed * speedFactor * dt;
+          f.y += ctrl.ay * f.brawler.speed * speedFactor * dt;
+          f.angle = Math.atan2(ctrl.ay, ctrl.ax);
+        }
+        resolveArenaWalls(f, f.radius);
+      } else if (f.isBot && match.isHost){
+        updateBotAI(f, dt, speedFactor);
+      }
     }
 
     f.inBush = tileAt(f.x, f.y) === T_BUSH;
@@ -1075,18 +1348,20 @@ function updateMatch(dt){
     for (let i = match.cubes.length - 1; i >= 0; i--){
       const c = match.cubes[i];
       if (dist(f.x, f.y, c.x, c.y) < f.radius + 16){
-        match.cubes.splice(i, 1);
-        f.cubes += 1;
-        f.maxHp += 350;
-        f.hp = Math.min(f.maxHp, f.hp + 500);
-        if (f.isPlayer){
-          sfx.play(600, 920, 0.12);
-          addPopup(f.x, f.y - 26, '+1 БАНКА СИЛЫ', '#2ecc71');
+        if (match.isHost || f.isPlayer){
+          match.cubes.splice(i, 1);
+          f.cubes += 1;
+          f.maxHp += 350;
+          f.hp = Math.min(f.maxHp, f.hp + 500);
+          if (f.isPlayer){
+            sfx.play(600, 920, 0.12);
+            addPopup(f.x, f.y - 26, '+1 БАНКА СИЛЫ', '#2ecc71');
+          }
         }
       }
     }
 
-    if (dist(f.x, f.y, center, center) > match.zoneRadius){
+    if ((match.isHost || f.isPlayer) && dist(f.x, f.y, center, center) > match.zoneRadius){
       if (Math.floor(match.time * 2) !== Math.floor((match.time - dt) * 2)){
         damageFighter(f, 350, null, 0);
       }
@@ -1109,11 +1384,13 @@ function updateMatch(dt){
       for (let j = match.boxes.length - 1; j >= 0; j--){
         const bx = match.boxes[j];
         if (dist(b.x, b.y, bx.x, bx.y) < bx.radius + 6){
-          bx.hp -= b.dmg;
-          addPopup(bx.x, bx.y - 18, `-${b.dmg}`, '#ffd166');
-          if (bx.hp <= 0){
-            match.boxes.splice(j, 1);
-            match.cubes.push({ x: bx.x, y: bx.y });
+          if (match.isHost || b.ownerId === match.peerId){
+            bx.hp -= b.dmg;
+            addPopup(bx.x, bx.y - 18, `-${b.dmg}`, '#ffd166');
+            if (bx.hp <= 0){
+              match.boxes.splice(j, 1);
+              match.cubes.push({ x: bx.x, y: bx.y });
+            }
           }
           if (!b.isSuper){ remove = true; break; }
         }
@@ -1125,13 +1402,57 @@ function updateMatch(dt){
       for (const f of match.fighters){
         if (f.dead || f.id === b.ownerId) continue;
         if (dist(b.x, b.y, f.x, f.y) < f.radius + 6){
-          damageFighter(f, b.dmg, attacker, b.freezeSec);
+          if (match.isHost || f.isPlayer){
+            damageFighter(f, b.dmg, attacker, b.freezeSec);
+          }
           if (!b.isSuper){ remove = true; break; }
         }
       }
     }
 
     if (remove) match.bullets.splice(i, 1);
+  }
+
+  if (match.netSyncTimer >= 0.08){
+    match.netSyncTimer = 0;
+    const p = match.player;
+    if (p){
+      sendBroadcast('state', {
+        nick: p.name,
+        selected: p.brawler.id,
+        level: p.brawler.level,
+        x: p.x,
+        y: p.y,
+        angle: p.angle,
+        hp: p.hp,
+        maxHp: p.maxHp,
+        cubes: p.cubes,
+        freezeTimer: p.freezeTimer,
+        dead: p.dead
+      });
+    }
+    if (match.isHost){
+      const botsData = match.fighters.filter(f => f.isBot).map(bf => ({
+        id: bf.id,
+        name: bf.name,
+        brawlerId: bf.brawler.id,
+        level: bf.brawler.level,
+        x: bf.x,
+        y: bf.y,
+        angle: bf.angle,
+        hp: bf.hp,
+        maxHp: bf.maxHp,
+        cubes: bf.cubes,
+        freezeTimer: bf.freezeTimer,
+        dead: bf.dead
+      }));
+      sendBroadcast('world', {
+        zoneRadius: match.zoneRadius,
+        boxes: match.boxes,
+        cubes: match.cubes,
+        bots: botsData
+      });
+    }
   }
 
   for (let i = match.popups.length - 1; i >= 0; i--){
@@ -1342,11 +1663,12 @@ function renderMatch(){
   ctx.scale(DPR, DPR);
 
   const aliveCount = match.fighters.filter(f => !f.dead).length;
+  const humansCount = 1 + match.remotePeers.size;
   ctx.fillStyle = 'rgba(10,20,35,0.86)';
-  ctx.fillRect(14, 14, 142, 34);
+  ctx.fillRect(14, 14, 210, 34);
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 13px sans-serif';
-  ctx.fillText(`FIGHT FRIZ • ${aliveCount}/6`, 24, 36);
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText(`${match.roomLabel} • ${aliveCount}/6 • 👤${humansCount}`, 22, 35);
 
   if (ctrl.joyActive){
     ctx.strokeStyle = 'rgba(125,211,252,0.35)';
