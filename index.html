@@ -1046,6 +1046,8 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
 }
 
 const SAVE_KEY = 'fight_friz_account_v3';
+const BACKUP_KEYS = ['fight_friz_account_v3', 'fight_friz_account_v2', 'fight_friz_account_v1'];
+const WINDOW_NAME_PREFIX = 'FIGHT_FRIZ_SAVE_V3:';
 
 function createDefaultAccount(){
   return {
@@ -1081,8 +1083,75 @@ function getAccountLevelInfo(){
   return { lvl, cur, perLvl, pct: Math.round((cur / perLvl) * 100) };
 }
 
+function getSaveScore(acc){
+  if (!acc) return 0;
+  const lvlSum = Object.values(acc.levels || {}).reduce((s, v) => s + Number(v || 1), 0);
+  const unlCount = Object.values(acc.unlocked || {}).filter(Boolean).length;
+  return Number(acc.trophies || 0) * 10 + Number(acc.coins || 0) + Number(acc.xp || 0) + lvlSum * 50 + unlCount * 150;
+}
+
+function applyParsedSaveToAccount(parsed){
+  if (!parsed) return false;
+  const d = parsed.account || parsed;
+  if (parsed.settings && typeof parsed.settings === 'object'){
+    Object.assign(settings, parsed.settings);
+  }
+  if (d.id && !tgUser) account.id = d.id;
+  if (d.nick) account.nick = d.nick;
+  if (typeof d.trophies === 'number') account.trophies = Math.max(account.trophies, Math.max(0, d.trophies));
+  if (typeof d.coins === 'number') account.coins = Math.max(account.coins, Math.max(0, d.coins));
+  if (typeof d.xp === 'number') account.xp = Math.max(account.xp, Math.max(0, d.xp));
+  if (d.selected && BRAWLERS[d.selected]) account.selected = d.selected;
+
+  if (d.unlocked && typeof d.unlocked === 'object'){
+    for (const id of BRAWLER_ORDER){
+      account.unlocked[id] = !!(account.unlocked[id] || d.unlocked[id]);
+    }
+    account.unlocked.friz = true;
+  }
+  if (d.levels && typeof d.levels === 'object'){
+    for (const id of BRAWLER_ORDER){
+      account.levels[id] = Math.max(Number(account.levels[id] || 1), Number(d.levels[id] || 1));
+    }
+  }
+  if (d.inventory && typeof d.inventory === 'object'){
+    for (const id of SHOP_ORDER){
+      account.inventory[id] = Math.max(Number(account.inventory[id] || 0), Number(d.inventory[id] || 0));
+    }
+  }
+  if (d.equipped && typeof d.equipped === 'object'){
+    for (const id of BRAWLER_ORDER){
+      const arr = Array.isArray(d.equipped[id]) ? d.equipped[id].filter(x => x && BUFFS[x]).slice(0, 2) : [];
+      if (arr.length > 0 || !Array.isArray(account.equipped[id])){
+        account.equipped[id] = arr;
+      }
+    }
+  }
+  if (d.potionsApplied && typeof d.potionsApplied === 'object'){
+    for (const id of BRAWLER_ORDER){
+      const curPot = account.potionsApplied[id] || { fury: 0, vital: 0 };
+      const incPot = d.potionsApplied[id] || {};
+      account.potionsApplied[id] = {
+        fury: Math.max(Number(curPot.fury || 0), Number(incPot.fury || 0)),
+        vital: Math.max(Number(curPot.vital || 0), Number(incPot.vital || 0))
+      };
+    }
+  }
+  return true;
+}
+
 function saveAccountLocal(){
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ account, settings })); } catch(_){}
+  const payloadStr = JSON.stringify({ account, settings, savedAt: Date.now() });
+  for (const k of BACKUP_KEYS){
+    try { localStorage.setItem(k, payloadStr); } catch(_){}
+  }
+  try {
+    if (typeof window.name === 'string' && !window.name.startsWith(WINDOW_NAME_PREFIX)){
+      window.name = WINDOW_NAME_PREFIX + payloadStr;
+    } else {
+      window.name = WINDOW_NAME_PREFIX + payloadStr;
+    }
+  } catch(_){}
 }
 
 async function saveAccountCloud(){
@@ -1104,37 +1173,33 @@ async function saveAccountCloud(){
 
 function saveAccount(){
   saveAccountLocal();
-  saveAccountCloud();
+  saveAccountCloud().catch(()=>{});
   updateLobbyPresence();
 }
 
 function loadAccountLocal(){
+  const candidates = [];
+  for (const k of BACKUP_KEYS){
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw){
+        const parsed = JSON.parse(raw);
+        candidates.push(parsed);
+      }
+    } catch(_){}
+  }
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    const d = parsed.account || parsed;
-    if (parsed.settings) Object.assign(settings, parsed.settings);
-    if (d.id && !tgUser) account.id = d.id;
-    if (d.nick) account.nick = d.nick;
-    if (typeof d.trophies === 'number') account.trophies = Math.max(0, d.trophies);
-    if (typeof d.coins === 'number') account.coins = Math.max(0, d.coins);
-    if (typeof d.xp === 'number') account.xp = Math.max(0, d.xp);
-    if (d.selected && BRAWLERS[d.selected]) account.selected = d.selected;
-    if (d.unlocked) account.unlocked = { ...account.unlocked, ...d.unlocked };
-    if (d.levels) account.levels = { ...account.levels, ...d.levels };
-    if (d.inventory) account.inventory = { ...account.inventory, ...d.inventory };
-    if (d.equipped){
-      for (const id of BRAWLER_ORDER){
-        account.equipped[id] = Array.isArray(d.equipped[id]) ? d.equipped[id].filter(Boolean) : [];
-      }
-    }
-    if (d.potionsApplied){
-      for (const id of BRAWLER_ORDER){
-        account.potionsApplied[id] = { fury: 0, vital: 0, ...(d.potionsApplied[id] || {}) };
-      }
+    if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)){
+      const parsedWin = JSON.parse(window.name.slice(WINDOW_NAME_PREFIX.length));
+      candidates.push(parsedWin);
     }
   } catch(_){}
+
+  candidates.sort((a, b) => getSaveScore(a?.account || a) - getSaveScore(b?.account || b));
+  for (const c of candidates){
+    applyParsedSaveToAccount(c);
+  }
+  saveAccountLocal();
 }
 
 async function syncAccountWithCloud(){
@@ -1147,13 +1212,23 @@ async function syncAccountWithCloud(){
       const cloudCoins = Number(data.coins ?? 200);
       const cloudUnlocked = safeJsonParse(data.unlocked, {});
       const cloudLevels = safeJsonParse(data.levels, {});
-      if (cloudTrophies >= account.trophies && cloudCoins >= account.coins){
-        if (data.nick) account.nick = data.nick;
-        account.trophies = Math.max(0, cloudTrophies);
-        account.coins = Math.max(0, cloudCoins);
+
+      const localScore = getSaveScore(account);
+      const cloudProxy = {
+        trophies: cloudTrophies,
+        coins: cloudCoins,
+        xp: account.xp,
+        levels: cloudLevels,
+        unlocked: cloudUnlocked
+      };
+      const cloudScore = getSaveScore(cloudProxy);
+
+      if (cloudScore > localScore){
+        if (data.nick && (!account.nick || account.nick === 'FRIZEN')) account.nick = data.nick;
+        account.trophies = Math.max(account.trophies, cloudTrophies);
+        account.coins = Math.max(account.coins, cloudCoins);
         if (data.selected && BRAWLERS[data.selected]) account.selected = data.selected;
-        account.unlocked = { ...account.unlocked, ...cloudUnlocked };
-        account.levels = { ...account.levels, ...cloudLevels };
+        applyParsedSaveToAccount({ account: { unlocked: cloudUnlocked, levels: cloudLevels } });
         saveAccountLocal();
       } else {
         await saveAccountCloud();
@@ -1756,7 +1831,7 @@ document.getElementById('btnAdmReset').onclick = () => {
   fresh.id = account.id;
   fresh.nick = account.nick;
   account = fresh;
-  saveAccount();
+  saveAccountLocal();
   renderLobby();
 };
 
@@ -3081,7 +3156,13 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
+window.addEventListener('pagehide', saveAccountLocal);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) saveAccountLocal();
+});
+
 loadAccountLocal();
+saveAccountLocal();
 resizeCanvas();
 renderLobby();
 syncAccountWithCloud();
@@ -3090,4 +3171,4 @@ requestAnimationFrame(loop);
 })();
 </script>
 </body>
-</html>'''
+</html>
