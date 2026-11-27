@@ -30,9 +30,7 @@
   .bs-top-left{display:flex;align-items:flex-start;gap:7px}
   .bs-top-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 
-  .bs-avatar-box{
-    display:flex;flex-direction:column;align-items:center;cursor:pointer;
-  }
+  .bs-avatar-box{display:flex;flex-direction:column;align-items:center;cursor:pointer}
   .bs-avatar-frame{
     width:44px;height:44px;border-radius:11px;
     background:linear-gradient(180deg,#1d4ed8 0%,#0f172a 100%);
@@ -182,43 +180,114 @@
   .bs-btn-bots:active,.bs-btn-online:active{transform:translateY(3px);box-shadow:0 1px 0 #040912}
 
   .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:rgba(5,12,24,0.92);z-index:25;padding:12px;overflow-y:auto}
+    background:rgba(5,12,24,0.93);z-index:25;padding:10px;overflow-y:auto}
   .modal-box{
     background:linear-gradient(180deg,#132847 0%,#0b172a 100%);
     border:2.5px solid #38bdf8;border-radius:20px;padding:14px;
-    width:min(430px,96vw);text-align:center;box-shadow:0 18px 45px rgba(0,0,0,0.8);
-    max-height:92vh;overflow-y:auto;
+    width:min(460px,96vw);text-align:center;box-shadow:0 18px 45px rgba(0,0,0,0.85);
+    max-height:93vh;overflow-y:auto;
   }
-  .brawlers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}
+
+  /* 6 Brawlers Grid (3x2) */
+  .brawlers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
   .brawler-card{
-    background:rgba(7,17,33,0.92);border:2px solid rgba(255,255,255,0.16);border-radius:13px;
-    padding:7px 4px;cursor:pointer;transition:transform 0.1s;
+    background:rgba(7,17,33,0.92);border:2px solid rgba(255,255,255,0.16);border-radius:12px;
+    padding:6px 4px;cursor:pointer;transition:transform 0.1s;position:relative;
   }
   .brawler-card:active{transform:scale(0.96)}
-  .brawler-card.selected{border-color:#facc15;background:rgba(250,204,21,0.15)}
+  .brawler-card.selected{border-color:#facc15;background:rgba(250,204,21,0.16)}
   .brawler-card.locked{opacity:0.75}
-  .b-name{font-size:11px;font-weight:900;margin-top:2px}
-  .b-lvl{font-size:10px;font-weight:800;color:#4ade80;margin-top:1px}
+  .b-name{font-size:11px;font-weight:900;margin-top:1px}
+  .b-lvl{font-size:9px;font-weight:800;color:#4ade80;margin-top:1px}
 
-  .gear-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0}
-  .gear-slot{
-    background:rgba(5,13,26,0.85);border:1.5px dashed rgba(125,211,252,0.45);
-    border-radius:11px;padding:8px;font-size:11px;cursor:pointer;text-align:left;
+  /* Single Buffs Button & Buff List */
+  .buff-btn-single{
+    width:100%;padding:10px 12px;border-radius:12px;border:2px solid #040912;
+    background:linear-gradient(180deg,#a855f7 0%,#6d28d9 100%);
+    color:#fff;font-size:12px;font-weight:900;text-transform:uppercase;
+    display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+    box-shadow:0 3px 0 #040912, inset 0 1px 0 rgba(255,255,255,0.3);
+    margin:6px 0;text-shadow:0 1px 2px #000;
   }
-  .gear-slot.equipped{border-style:solid;border-color:#4ade80;background:rgba(22,101,52,0.25)}
+  .buff-btn-single:active{transform:translateY(2px);box-shadow:0 1px 0 #040912}
 
-  .shop-grid{display:flex;flex-direction:column;gap:7px;margin:8px 0;text-align:left}
-  .shop-card{
+  .buff-select-list{display:flex;flex-direction:column;gap:7px;margin:8px 0;text-align:left;max-height:54vh;overflow-y:auto}
+  .buff-select-card{
     display:flex;align-items:center;justify-content:space-between;gap:8px;
-    background:rgba(6,15,30,0.88);border:1.5px solid rgba(125,211,252,0.28);
-    border-radius:12px;padding:9px 10px;
+    background:rgba(6,15,30,0.9);border:2px solid rgba(125,211,252,0.28);
+    border-radius:12px;padding:8px 10px;
   }
-  .shop-buy-btn{
-    border:2px solid #040912;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:900;
-    background:linear-gradient(180deg,#facc15 0%,#ca8a04 100%);color:#1b1200;cursor:pointer;white-space:nowrap;
-  }
+  .buff-select-card.active-buff{border-color:#4ade80;background:rgba(20,83,45,0.32)}
 
-  .info-panel{background:rgba(4,10,20,0.65);border:1px solid rgba(125,211,252,0.2);border-radius:12px;padding:9px;margin-bottom:8px;text-align:left;font-size:11px;line-height:1.42}
+  /* Brawl Stars Style Shop */
+  .bs-shop-banner{
+    background:linear-gradient(90deg,#be123c 0%,#e11d48 50%,#f59e0b 100%);
+    border:2px solid #040912;border-radius:13px;padding:8px 12px;margin-bottom:8px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 3px 0 #040912;
+  }
+  .bs-shop-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0;
+  }
+  .bs-shop-card{
+    position:relative;border-radius:14px;border:2.5px solid #040912;
+    background:linear-gradient(180deg,#1e3a8a 0%,#0f172a 100%);
+    box-shadow:0 4px 0 #040912, inset 0 2px 0 rgba(255,255,255,0.22);
+    padding:8px 7px 9px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+    text-align:center;overflow:hidden;
+  }
+  .bs-shop-card.rarity-rare{background:linear-gradient(180deg,#0284c7 0%,#0c2d5e 100%)}
+  .bs-shop-card.rarity-epic{background:linear-gradient(180deg,#7e22ce 0%,#2e1065 100%)}
+  .bs-shop-card.rarity-mythic{background:linear-gradient(180deg,#e11d48 0%,#4c0519 100%)}
+  .bs-shop-card.rarity-legendary{background:linear-gradient(180deg,#d97706 0%,#451a03 100%);border-color:#facc15}
+
+  .bs-rarity-tag{
+    font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;
+    background:rgba(0,0,0,0.55);padding:2px 7px;border-radius:99px;margin-bottom:4px;
+  }
+  .bs-shop-art{
+    width:58px;height:58px;border-radius:14px;background:radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(0,0,0,0.25) 100%);
+    display:flex;align-items:center;justify-content:center;margin:2px 0 5px;
+    box-shadow:inset 0 0 10px rgba(255,255,255,0.15);
+  }
+  .bs-shop-title{font-size:12px;font-weight:900;color:#fff;text-shadow:0 1.5px 0 #000}
+  .bs-shop-stat{font-size:10px;font-weight:800;color:#bae6fd;margin:3px 0 6px;line-height:1.25;min-height:24px}
+  .bs-shop-price-btn{
+    width:100%;border:2px solid #040912;border-radius:9px;padding:6px 8px;
+    font-size:11px;font-weight:900;cursor:pointer;
+    background:linear-gradient(180deg,#4ade80 0%,#16a34a 100%);color:#052e16;
+    box-shadow:0 2.5px 0 #040912;
+  }
+  .bs-shop-price-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #040912}
+
+  /* Matchmaking Overlay (Brawl Stars Style) */
+  .mm-screen{
+    position:fixed;inset:0;z-index:30;
+    background:radial-gradient(circle at 50% 45%, #1d4ed8 0%, #091836 62%, #040914 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+    padding:22px 16px 26px;text-align:center;
+  }
+  .mm-radar{
+    width:116px;height:116px;border-radius:50%;
+    border:4px solid #38bdf8;box-shadow:0 0 30px rgba(56,189,248,0.6), inset 0 0 24px rgba(56,189,248,0.4);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(6,18,38,0.85);animation:mmPulse 1.2s infinite ease-in-out;
+  }
+  @keyframes mmPulse{
+    0%,100%{transform:scale(1)}
+    50%{transform:scale(1.06)}
+  }
+  .mm-slots-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(380px,94vw);
+  }
+  .mm-slot{
+    background:rgba(8,20,42,0.86);border:2px solid rgba(125,211,252,0.28);
+    border-radius:13px;padding:8px 5px;display:flex;flex-direction:column;align-items:center;
+    min-height:86px;justify-content:center;
+  }
+  .mm-slot.found{border-color:#4ade80;background:rgba(20,83,45,0.34)}
+
+  .info-panel{background:rgba(4,10,20,0.65);border:1px solid rgba(125,211,252,0.2);border-radius:12px;padding:9px;margin-bottom:6px;text-align:left;font-size:11px;line-height:1.42}
   .info-row{display:flex;justify-content:space-between;margin-bottom:2px}
 
   .btn{width:100%;padding:10px 12px;border:2px solid #040912;border-radius:12px;font-size:12px;font-weight:900;
@@ -304,7 +373,7 @@
     <div class="bs-left-nav">
       <button id="btnOpenBrawlers" class="bs-nav-btn btn-brawlers">
         <span>❄️ БОЙЦЫ</span>
-        <span id="brawlersCountBadge" style="font-size:10px;opacity:0.95">1/3</span>
+        <span id="brawlersCountBadge" style="font-size:10px;opacity:0.95">1/6</span>
       </button>
       <button id="btnOpenShop" class="bs-nav-btn btn-shop">
         <span>🛒 МАГАЗИН</span>
@@ -329,55 +398,86 @@
   </div>
 </div>
 
+<!-- MATCHMAKING SCREEN (Brawl Stars Style) -->
+<div id="matchmakingScreen" class="mm-screen hidden">
+  <div>
+    <div style="font-size:22px;font-weight:900;letter-spacing:1px;color:#7dd3fc">ПОИСК ИГРОКОВ...</div>
+    <div id="mmSubtitle" style="font-size:12px;color:#bae6fd;margin-top:3px">Подбор соперников на ледяную арену</div>
+  </div>
+
+  <div class="mm-radar">
+    <div id="mmCountText" style="font-size:28px;font-weight:900;color:#facc15">1/6</div>
+    <div style="font-size:10px;font-weight:800;color:#bae6fd">ИГРОКОВ</div>
+  </div>
+
+  <div id="mmSlotsGrid" class="mm-slots-grid"></div>
+
+  <button id="btnCancelMatchmaking" class="btn btn-admin" style="max-width:240px">ОТМЕНА ПОИСКА</button>
+</div>
+
+<!-- BRAWLERS MODAL -->
 <div id="brawlersModal" class="screen hidden">
   <div class="modal-box">
-    <div style="font-size:17px;font-weight:900;color:#67e8f9">❄️ БОЙЦЫ И ЭКИПИРОВКА</div>
+    <div style="font-size:17px;font-weight:900;color:#67e8f9">❄️ БОЙЦЫ (6 ПЕРСОНАЖЕЙ)</div>
     <div id="brawlersGrid" class="brawlers-grid"></div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0">
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0">
       <div id="brawlerPreviewWrap"></div>
       <div id="brawlerInfo" class="info-panel" style="flex:1;margin:0"></div>
     </div>
 
-    <div style="font-size:11px;font-weight:900;color:#fde047;text-align:left;margin-top:6px">🎒 ПРЕДМЕТЫ БОЙЦА (нажми на слот, чтобы надеть/снять):</div>
-    <div class="gear-row">
-      <div id="gearSlot0" class="gear-slot"></div>
-      <div id="gearSlot1" class="gear-slot"></div>
-    </div>
-
-    <div style="font-size:11px;font-weight:900;color:#86efac;text-align:left;margin-top:4px">🧪 ЗЕЛЬЯ В ИНВЕНТАРЕ (нажми, чтобы выпить на бойце):</div>
-    <div id="potionInventoryBox" class="info-panel" style="margin-top:4px"></div>
+    <button id="btnOpenBuffSelector" class="buff-btn-single">
+      <span>✨ БАФЫ БОЙЦА</span>
+      <span id="activeBuffsBadge" style="background:#040912;padding:2px 8px;border-radius:8px;color:#facc15">Выбрано: 0/2</span>
+    </button>
 
     <button id="btnActionBrawler" class="btn btn-upg">УЛУЧШИТЬ БОЙЦА</button>
     <button id="btnCloseBrawlers" class="btn btn-sec">ГОТОВО</button>
   </div>
 </div>
 
+<!-- BUFFS SELECTION SUB-MODAL -->
+<div id="buffsModal" class="screen hidden">
+  <div class="modal-box">
+    <div style="font-size:17px;font-weight:900;color:#e879f9">✨ ВЫБОР БАФОВ НА БОЙЦА</div>
+    <div style="font-size:11px;color:#bae6fd;margin-top:3px">
+      Можно активировать до <b>2 бафов</b> одновременно или выпить купленные зелья!
+    </div>
+    <div id="buffSelectList" class="buff-select-list"></div>
+    <button id="btnCloseBuffs" class="btn btn-play">ГОТОВО</button>
+  </div>
+</div>
+
+<!-- BRAWL-STYLE SHOP MODAL -->
 <div id="shopModal" class="screen hidden">
   <div class="modal-box">
-    <div style="font-size:18px;font-weight:900;color:#fb7185">🛒 МАГАЗИН БАФОВ И ЗЕЛИЙ</div>
-    <div style="font-size:11px;color:#bae6fd;margin-top:3px">
-      Монеты: <b id="shopCoinsText" style="color:#facc15">200</b> • Предметы надеваются в «Бойцы», зелья применяются на бойца!
+    <div class="bs-shop-banner">
+      <div style="text-align:left">
+        <div style="font-size:16px;font-weight:900;text-shadow:0 1.5px 0 #000">🛒 МАГАЗИН БАФОВ</div>
+        <div style="font-size:10px;opacity:0.95">Ежедневная витрина усилений</div>
+      </div>
+      <div class="bs-pill bs-pill-coins" style="font-size:13px">🪙 <span id="shopCoinsText">200</span></div>
     </div>
-    <div id="shopList" class="shop-grid"></div>
+    <div id="shopGrid" class="bs-shop-grid"></div>
     <button id="btnCloseShop" class="btn btn-sec">ЗАКРЫТЬ</button>
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
 <div id="settingsModal" class="screen hidden">
   <div class="modal-box">
     <div style="font-size:18px;font-weight:900;color:#67e8f9">⚙️ НАСТРОЙКИ</div>
     <div style="margin-top:10px">
       <div class="toggle-row">
         <span>🔊 Звуковые эффекты</span>
-        <button id="btnToggleSound" class="shop-buy-btn">ВКЛ</button>
+        <button id="btnToggleSound" class="bs-shop-price-btn" style="width:auto">ВКЛ</button>
       </div>
       <div class="toggle-row">
-        <span>🎯 Автоприцел при тапе/клавише</span>
-        <button id="btnToggleAimAssist" class="shop-buy-btn">ВКЛ</button>
+        <span>🎯 Автоприцел при быстром тапе</span>
+        <button id="btnToggleAimAssist" class="bs-shop-price-btn" style="width:auto">ВКЛ</button>
       </div>
       <div class="toggle-row">
         <span>🕹️ Чувствительность джойстика</span>
-        <button id="btnToggleJoySens" class="shop-buy-btn">НОРМ</button>
+        <button id="btnToggleJoySens" class="bs-shop-price-btn" style="width:auto">НОРМ</button>
       </div>
     </div>
     <button id="btnOpenProfileFromSettings" class="btn btn-play">ИЗМЕНИТЬ НИК</button>
@@ -386,6 +486,7 @@
   </div>
 </div>
 
+<!-- ADMIN MODAL -->
 <div id="adminModal" class="screen hidden">
   <div class="modal-box">
     <div style="font-size:18px;font-weight:900;color:#fb7185">🛡️ АДМИН-ПАНЕЛЬ</div>
@@ -396,17 +497,18 @@
     </div>
 
     <div id="adminPanelBox" class="hidden">
-      <div style="font-size:11px;color:#86efac;margin:4px 0 8px">Доступ активирован. Быстрая выдача ресурсов:</div>
-      <button id="btnAdmCoins" class="btn btn-upg">+1 000 МОНЕТ 🪙</button>
-      <button id="btnAdmTrophies" class="btn btn-play">+100 КУБКОВ 🏆</button>
-      <button id="btnAdmUnlockAll" class="btn btn-unlock">ОТКРЫТЬ ВСЕХ БОЙЦОВ + УР. 9</button>
-      <button id="btnAdmItems" class="btn btn-upg">ВЫДАТЬ ВСЕ ПРЕДМЕТЫ И ЗЕЛЬЯ</button>
+      <div style="font-size:11px;color:#86efac;margin:4px 0 8px">Доступ активирован. Выдача ресурсов:</div>
+      <button id="btnAdmCoins" class="btn btn-upg">+2 000 МОНЕТ 🪙</button>
+      <button id="btnAdmTrophies" class="btn btn-play">+150 КУБКОВ 🏆</button>
+      <button id="btnAdmUnlockAll" class="btn btn-unlock">ОТКРЫТЬ ВСЕХ 6 БОЙЦОВ + УР. 9</button>
+      <button id="btnAdmItems" class="btn btn-upg">ВЫДАТЬ ВСЕ БАФЫ И ЗЕЛЬЯ</button>
       <button id="btnAdmReset" class="btn btn-admin">СБРОСИТЬ ПРОГРЕСС</button>
     </div>
     <button id="btnCloseAdmin" class="btn btn-sec">ЗАКРЫТЬ</button>
   </div>
 </div>
 
+<!-- PARTY MODAL -->
 <div id="partyModal" class="screen hidden">
   <div class="modal-box">
     <div style="font-size:17px;font-weight:900;color:#67e8f9">👥 ЛОББИ С ДРУЗЬЯМИ</div>
@@ -424,10 +526,10 @@
 
 <div id="soonModal" class="screen hidden">
   <div class="modal-box">
-    <div id="soonTitle" style="font-size:20px;font-weight:900;color:#facc15">🎫 FRIZ PASS</div>
+    <div style="font-size:20px;font-weight:900;color:#facc15">🎫 FRIZ PASS</div>
     <div style="margin:14px 0;padding:14px;border-radius:14px;background:rgba(56,189,248,0.12);border:1.5px solid #38bdf8">
       <div style="font-size:17px;font-weight:900;color:#fff;margin-bottom:4px">⏳ СКОРО БУДЕТ!</div>
-      <div id="soonDesc" style="font-size:12px;color:#93c5fd;line-height:1.4">
+      <div style="font-size:12px;color:#93c5fd;line-height:1.4">
         Сезонный пропуск с морозными наградами и эксклюзивными эффектами появится в ближайшем обновлении.
       </div>
     </div>
@@ -536,6 +638,7 @@ const sfx = {
   }
 };
 
+/* 6 DISTINCT BRAWLERS */
 const BRAWLERS = {
   friz: {
     id: 'friz',
@@ -588,59 +691,185 @@ const BRAWLERS = {
     bulletSpeed: 760,
     freezeSec: 1.6,
     superDesc: 'Ледокол: стремительный таран вперёд с огромным уроном!'
+  },
+  glacier: {
+    id: 'glacier',
+    name: 'Глетчер',
+    role: 'Артиллерист • Осколки',
+    color: '#2dd4bf',
+    unlockCost: 450,
+    baseHp: 3800,
+    baseDmg: 720,
+    speed: 238,
+    reloadTime: 1.35,
+    pellets: 2,
+    spread: 0.14,
+    range: 440,
+    bulletSpeed: 740,
+    freezeSec: 1.8,
+    superDesc: 'Кольцо вьюги: круговой взрыв из 12 ледяных глыб вокруг!'
+  },
+  spark: {
+    id: 'spark',
+    name: 'Спарк',
+    role: 'Ассасин • Молния',
+    color: '#a855f7',
+    unlockCost: 650,
+    baseHp: 3100,
+    baseDmg: 310,
+    speed: 282,
+    reloadTime: 0.92,
+    pellets: 3,
+    spread: 0.18,
+    range: 330,
+    bulletSpeed: 920,
+    freezeSec: 1.0,
+    superDesc: 'Блиц-рывок: молниеносный скачок и двойной веер разрядов!'
+  },
+  boreas: {
+    id: 'boreas',
+    name: 'Борей',
+    role: 'Легенда • Метель',
+    color: '#60a5fa',
+    unlockCost: 900,
+    baseHp: 4600,
+    baseDmg: 420,
+    speed: 252,
+    reloadTime: 1.05,
+    pellets: 6,
+    spread: 0.44,
+    range: 410,
+    bulletSpeed: 860,
+    freezeSec: 2.1,
+    superDesc: 'Абсолютный ноль: гигантский ледяной шквал на 14 снарядов!'
   }
 };
-const BRAWLER_ORDER = ['friz', 'volt', 'titan'];
+const BRAWLER_ORDER = ['friz', 'volt', 'titan', 'glacier', 'spark', 'boreas'];
 
-const ITEMS = {
-  cryo_core: {
-    id: 'cryo_core',
-    kind: 'item',
-    name: 'Крио-ядро',
-    icon: '💎',
-    cost: 120,
-    desc: '+14% к урону снарядов и +0.4с заморозки',
-    dmgPct: 0.14,
+/* WEAK & STRONG BUFFS + POTIONS */
+const BUFFS = {
+  snow_chip: {
+    id: 'snow_chip',
+    kind: 'buff',
+    tier: 'Слабый баф',
+    rarity: 'rare',
+    name: 'Снежный осколок',
+    icon: '❄️',
+    cost: 60,
+    desc: '+6% к урону снарядов',
+    dmgPct: 0.06
+  },
+  warm_scarf: {
+    id: 'warm_scarf',
+    kind: 'buff',
+    tier: 'Слабый баф',
+    rarity: 'rare',
+    name: 'Тёплый шарф',
+    icon: '🧣',
+    cost: 65,
+    desc: '+320 к макс. HP бойца',
+    hpBonus: 320
+  },
+  light_skates: {
+    id: 'light_skates',
+    kind: 'buff',
+    tier: 'Слабый баф',
+    rarity: 'rare',
+    name: 'Лёгкие коньки',
+    icon: '⛸️',
+    cost: 75,
+    desc: '+14 к скорости бега',
+    speedBonus: 14
+  },
+  frost_lens: {
+    id: 'frost_lens',
+    kind: 'buff',
+    tier: 'Средний баф',
+    rarity: 'epic',
+    name: 'Крио-линза',
+    icon: '🔭',
+    cost: 130,
+    desc: '+12% к урону и +0.4с заморозки',
+    dmgPct: 0.12,
     freezeBonus: 0.4
   },
-  frost_plate: {
-    id: 'frost_plate',
-    kind: 'item',
-    name: 'Ледяная броня',
+  glacier_armor: {
+    id: 'glacier_armor',
+    kind: 'buff',
+    tier: 'Средний баф',
+    rarity: 'epic',
+    name: 'Ледяной панцирь',
     icon: '🛡️',
-    cost: 120,
-    desc: '+650 макс. HP бойцу',
-    hpBonus: 650
-  },
-  glacier_boots: {
-    id: 'glacier_boots',
-    kind: 'item',
-    name: 'Коньки скорости',
-    icon: '⛸️',
     cost: 140,
-    desc: '+22 к скорости передвижения бойца',
-    speedBonus: 22
+    desc: '+750 макс. HP и +6% урона',
+    hpBonus: 750,
+    dmgPct: 0.06
+  },
+  turbo_reactor: {
+    id: 'turbo_reactor',
+    kind: 'buff',
+    tier: 'Сильный баф',
+    rarity: 'mythic',
+    name: 'Турбо-реактор',
+    icon: '⚡',
+    cost: 240,
+    desc: '+22% перезарядки и +26 скорости',
+    reloadPct: 0.22,
+    speedBonus: 26
+  },
+  absolute_crown: {
+    id: 'absolute_crown',
+    kind: 'buff',
+    tier: 'Сильный баф',
+    rarity: 'legendary',
+    name: 'Корона Фриза',
+    icon: '👑',
+    cost: 360,
+    desc: '+25% урона, +1100 HP и +0.7с фриза',
+    dmgPct: 0.25,
+    hpBonus: 1100,
+    freezeBonus: 0.7
   },
   fury_potion: {
     id: 'fury_potion',
     kind: 'potion',
+    tier: 'Зелье (навсегда)',
+    rarity: 'mythic',
     name: 'Зелье ярости',
     icon: '🧪',
-    cost: 90,
-    desc: 'Даёт бойцу постоянный бонус +80 к базовому урону',
-    bonusDmg: 80
+    cost: 110,
+    desc: '+90 к базовому урону бойца',
+    bonusDmg: 90
   },
   vital_potion: {
     id: 'vital_potion',
     kind: 'potion',
+    tier: 'Зелье (навсегда)',
+    rarity: 'epic',
     name: 'Зелье титана',
     icon: '⚗️',
-    cost: 90,
-    desc: 'Даёт бойцу постоянный бонус +700 к макс. HP',
-    bonusHp: 700
+    cost: 110,
+    desc: '+750 к макс. HP бойца',
+    bonusHp: 750
   }
 };
-const SHOP_ORDER = ['cryo_core', 'frost_plate', 'glacier_boots', 'fury_potion', 'vital_potion'];
+const SHOP_ORDER = [
+  'snow_chip', 'warm_scarf', 'light_skates',
+  'frost_lens', 'glacier_armor', 'turbo_reactor',
+  'absolute_crown', 'fury_potion', 'vital_potion'
+];
+
+function getBuffArtSVG(id){
+  const b = BUFFS[id];
+  const bg = b.rarity === 'legendary' ? '#f59e0b'
+           : b.rarity === 'mythic' ? '#f43f5e'
+           : b.rarity === 'epic' ? '#a855f7' : '#38bdf8';
+  return `<svg width="48" height="48" viewBox="0 0 64 64">
+    <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="${bg}" stroke="#040912" stroke-width="3.5"/>
+    <polygon points="32,10 50,21 50,43 32,54 14,43 14,21" fill="rgba(255,255,255,0.22)"/>
+    <text x="32" y="40" font-size="24" text-anchor="middle">${b.icon}</text>
+  </svg>`;
+}
 
 function getCharacterSVG(id, size = 132){
   if (id === 'volt'){
@@ -674,6 +903,46 @@ function getCharacterSVG(id, size = 132){
       <circle cx="52" cy="32" r="3.5" fill="#040912"/>
       <circle cx="68" cy="32" r="3.5" fill="#040912"/>
       <path d="M51 40 Q60 45 69 40" stroke="#040912" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if (id === 'glacier'){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="110" rx="30" ry="6" fill="rgba(0,0,0,0.45)"/>
+      <rect x="40" y="84" width="14" height="22" rx="5" fill="#115e59" stroke="#040912" stroke-width="3"/>
+      <rect x="66" y="84" width="14" height="22" rx="5" fill="#115e59" stroke="#040912" stroke-width="3"/>
+      <rect x="32" y="46" width="56" height="42" rx="15" fill="#14b8a6" stroke="#040912" stroke-width="3.5"/>
+      <circle cx="60" cy="67" r="11" fill="#ccfbf1" stroke="#040912" stroke-width="2.5"/>
+      <rect x="86" y="48" width="24" height="18" rx="6" fill="#0f766e" stroke="#040912" stroke-width="3"/>
+      <polygon points="60,8 78,24 72,46 48,46 42,24" fill="#99f6e4" stroke="#040912" stroke-width="3.5"/>
+      <circle cx="53" cy="31" r="3" fill="#040912"/>
+      <circle cx="67" cy="31" r="3" fill="#040912"/>
+    </svg>`;
+  }
+  if (id === 'spark'){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="110" rx="26" ry="6" fill="rgba(0,0,0,0.45)"/>
+      <rect x="43" y="84" width="11" height="22" rx="5" fill="#3b0764" stroke="#040912" stroke-width="3"/>
+      <rect x="66" y="84" width="11" height="22" rx="5" fill="#3b0764" stroke="#040912" stroke-width="3"/>
+      <rect x="37" y="49" width="46" height="38" rx="14" fill="#a855f7" stroke="#040912" stroke-width="3.5"/>
+      <polygon points="60,54 68,68 60,68 64,81 51,66 59,66" fill="#fde047"/>
+      <circle cx="60" cy="33" r="21" fill="#f3e8ff" stroke="#040912" stroke-width="3.5"/>
+      <polygon points="40,22 48,6 56,19 64,6 72,19 80,22" fill="#7e22ce" stroke="#040912" stroke-width="3"/>
+      <circle cx="53" cy="34" r="3.2" fill="#040912"/>
+      <circle cx="67" cy="34" r="3.2" fill="#040912"/>
+    </svg>`;
+  }
+  if (id === 'boreas'){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="111" rx="32" ry="7" fill="rgba(0,0,0,0.45)"/>
+      <rect x="39" y="84" width="14" height="23" rx="6" fill="#1e3a8a" stroke="#040912" stroke-width="3"/>
+      <rect x="67" y="84" width="14" height="23" rx="6" fill="#1e3a8a" stroke="#040912" stroke-width="3"/>
+      <rect x="31" y="45" width="58" height="43" rx="17" fill="#3b82f6" stroke="#040912" stroke-width="3.5"/>
+      <circle cx="60" cy="66" r="12" fill="#dbeafe" stroke="#040912" stroke-width="2.5"/>
+      <circle cx="60" cy="32" r="22" fill="#eff6ff" stroke="#040912" stroke-width="3.5"/>
+      <polygon points="36,24 44,7 53,18 60,5 67,18 76,7 84,24" fill="#facc15" stroke="#040912" stroke-width="3"/>
+      <circle cx="52" cy="33" r="3.5" fill="#1d4ed8"/>
+      <circle cx="68" cy="33" r="3.5" fill="#1d4ed8"/>
+      <path d="M52 41 Q60 46 68 41" stroke="#040912" stroke-width="3" fill="none" stroke-linecap="round"/>
     </svg>`;
   }
   return `<svg width="${size}" height="${size}" viewBox="0 0 120 120">
@@ -731,7 +1000,7 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.fill();
   ctx.restore();
 
-  ctx.fillStyle = bId === 'volt' ? '#ffe4e6' : (bId === 'titan' ? '#fde68a' : '#e0f2fe');
+  ctx.fillStyle = bId === 'volt' ? '#ffe4e6' : (bId === 'titan' ? '#fde68a' : (bId === 'spark' ? '#f3e8ff' : '#e0f2fe'));
   ctx.strokeStyle = '#040912';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -739,7 +1008,7 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = bId === 'volt' ? '#be123c' : (bId === 'titan' ? '#38bdf8' : '#0284c7');
+  ctx.fillStyle = bId === 'volt' ? '#be123c' : (bId === 'titan' ? '#38bdf8' : (bId === 'boreas' ? '#facc15' : (bId === 'spark' ? '#7e22ce' : '#0284c7')));
   ctx.beginPath();
   ctx.arc(f.x, f.y - r * 0.75, r * 0.68, Math.PI, 0);
   ctx.fill();
@@ -776,29 +1045,34 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.restore();
 }
 
-const SAVE_KEY = 'fight_friz_account_v2';
+const SAVE_KEY = 'fight_friz_account_v3';
 
-const account = {
-  id: tgUser ? `tg_${tgUser.id}` : 'friz_' + Math.floor(100000 + Math.random()*900000),
-  nick: tgUser ? (tgUser.first_name || 'FRIZEN') : 'FRIZEN',
-  trophies: 0,
-  coins: 200,
-  xp: 0,
-  selected: 'friz',
-  unlocked: { friz: true, volt: false, titan: false },
-  levels:   { friz: 1,    volt: 1,     titan: 1 },
-  inventory: { cryo_core: 0, frost_plate: 0, glacier_boots: 0, fury_potion: 0, vital_potion: 0 },
-  equipped: {
-    friz:  [null, null],
-    volt:  [null, null],
-    titan: [null, null]
-  },
-  potionsApplied: {
-    friz:  { fury: 0, vital: 0 },
-    volt:  { fury: 0, vital: 0 },
-    titan: { fury: 0, vital: 0 }
-  }
-};
+function createDefaultAccount(){
+  return {
+    id: tgUser ? `tg_${tgUser.id}` : 'friz_' + Math.floor(100000 + Math.random()*900000),
+    nick: tgUser ? (tgUser.first_name || 'FRIZEN') : 'FRIZEN',
+    trophies: 0,
+    coins: 200,
+    xp: 0,
+    selected: 'friz',
+    unlocked: { friz: true, volt: false, titan: false, glacier: false, spark: false, boreas: false },
+    levels:   { friz: 1, volt: 1, titan: 1, glacier: 1, spark: 1, boreas: 1 },
+    inventory: {
+      snow_chip: 0, warm_scarf: 0, light_skates: 0,
+      frost_lens: 0, glacier_armor: 0, turbo_reactor: 0,
+      absolute_crown: 0, fury_potion: 0, vital_potion: 0
+    },
+    equipped: {
+      friz: [], volt: [], titan: [], glacier: [], spark: [], boreas: []
+    },
+    potionsApplied: {
+      friz: { fury: 0, vital: 0 }, volt: { fury: 0, vital: 0 }, titan: { fury: 0, vital: 0 },
+      glacier: { fury: 0, vital: 0 }, spark: { fury: 0, vital: 0 }, boreas: { fury: 0, vital: 0 }
+    }
+  };
+}
+
+let account = createDefaultAccount();
 
 function getAccountLevelInfo(){
   const perLvl = 150;
@@ -850,8 +1124,16 @@ function loadAccountLocal(){
     if (d.unlocked) account.unlocked = { ...account.unlocked, ...d.unlocked };
     if (d.levels) account.levels = { ...account.levels, ...d.levels };
     if (d.inventory) account.inventory = { ...account.inventory, ...d.inventory };
-    if (d.equipped) account.equipped = { ...account.equipped, ...d.equipped };
-    if (d.potionsApplied) account.potionsApplied = { ...account.potionsApplied, ...d.potionsApplied };
+    if (d.equipped){
+      for (const id of BRAWLER_ORDER){
+        account.equipped[id] = Array.isArray(d.equipped[id]) ? d.equipped[id].filter(Boolean) : [];
+      }
+    }
+    if (d.potionsApplied){
+      for (const id of BRAWLER_ORDER){
+        account.potionsApplied[id] = { fury: 0, vital: 0, ...(d.potionsApplied[id] || {}) };
+      }
+    }
   } catch(_){}
 }
 
@@ -884,25 +1166,27 @@ async function syncAccountWithCloud(){
 }
 
 function getBrawlerStats(id, lvlOverride = null){
-  const b = BRAWLERS[id];
+  const b = BRAWLERS[id] || BRAWLERS.friz;
   const lvl = lvlOverride || account.levels[id] || 1;
   const mult = 1 + (lvl - 1) * 0.12;
   const pot = account.potionsApplied[id] || { fury: 0, vital: 0 };
-  const eq = account.equipped[id] || [null, null];
+  const eq = Array.isArray(account.equipped[id]) ? account.equipped[id] : [];
 
-  let hpBonus = (pot.vital || 0) * (ITEMS.vital_potion.bonusHp || 0);
-  let dmgBonus = (pot.fury || 0) * (ITEMS.fury_potion.bonusDmg || 0);
+  let hpBonus = (pot.vital || 0) * (BUFFS.vital_potion.bonusHp || 0);
+  let dmgBonus = (pot.fury || 0) * (BUFFS.fury_potion.bonusDmg || 0);
   let dmgMult = 1;
   let speedBonus = 0;
   let freezeBonus = 0;
+  let reloadMult = 1;
 
-  for (const itemId of eq){
-    const it = itemId ? ITEMS[itemId] : null;
+  for (const buffId of eq){
+    const it = buffId ? BUFFS[buffId] : null;
     if (!it) continue;
     if (it.hpBonus) hpBonus += it.hpBonus;
     if (it.dmgPct) dmgMult += it.dmgPct;
     if (it.speedBonus) speedBonus += it.speedBonus;
     if (it.freezeBonus) freezeBonus += it.freezeBonus;
+    if (it.reloadPct) reloadMult -= it.reloadPct;
   }
 
   return {
@@ -911,6 +1195,7 @@ function getBrawlerStats(id, lvlOverride = null){
     maxHp: Math.round(b.baseHp * mult + hpBonus),
     dmg: Math.round((b.baseDmg * mult + dmgBonus) * dmgMult),
     speed: b.speed + speedBonus,
+    reloadTime: Math.max(0.45, +(b.reloadTime * Math.max(0.55, reloadMult)).toFixed(2)),
     freezeSec: +(b.freezeSec + freezeBonus).toFixed(2)
   };
 }
@@ -991,7 +1276,7 @@ function joinParty(code){
     ch.on('broadcast', { event: 'start_party_match' }, ({ payload }) => {
       if (!payload || !payload.matchKey || match.active) return;
       partyModal.classList.add('hidden');
-      startMatch(payload.matchKey, 'ЛОББИ ' + clean, false);
+      startOnlineMatchmaking(payload.matchKey, 'ЛОББИ ' + clean);
     });
     ch.subscribe(async status => {
       if (status === 'SUBSCRIBED'){
@@ -1008,86 +1293,117 @@ function joinParty(code){
   } catch(_){}
 }
 
-const lobbyScreen      = document.getElementById('lobbyScreen');
-const resultScreen     = document.getElementById('resultScreen');
-const profileModal     = document.getElementById('profileModal');
-const brawlersModal    = document.getElementById('brawlersModal');
-const shopModal        = document.getElementById('shopModal');
-const settingsModal    = document.getElementById('settingsModal');
-const adminModal       = document.getElementById('adminModal');
-const partyModal       = document.getElementById('partyModal');
-const soonModal        = document.getElementById('soonModal');
-const leaderboardModal = document.getElementById('leaderboardModal');
-const leaderboardList  = document.getElementById('leaderboardList');
-const btnExitMatch     = document.getElementById('btnExitMatch');
-const brawlersGrid     = document.getElementById('brawlersGrid');
-const brawlerInfo      = document.getElementById('brawlerInfo');
-const btnActionBrawler = document.getElementById('btnActionBrawler');
+const lobbyScreen        = document.getElementById('lobbyScreen');
+const matchmakingScreen  = document.getElementById('matchmakingScreen');
+const resultScreen       = document.getElementById('resultScreen');
+const profileModal       = document.getElementById('profileModal');
+const brawlersModal      = document.getElementById('brawlersModal');
+const buffsModal         = document.getElementById('buffsModal');
+const shopModal          = document.getElementById('shopModal');
+const settingsModal      = document.getElementById('settingsModal');
+const adminModal         = document.getElementById('adminModal');
+const partyModal         = document.getElementById('partyModal');
+const soonModal          = document.getElementById('soonModal');
+const leaderboardModal   = document.getElementById('leaderboardModal');
+const leaderboardList    = document.getElementById('leaderboardList');
+const btnExitMatch       = document.getElementById('btnExitMatch');
+const brawlersGrid       = document.getElementById('brawlersGrid');
+const brawlerInfo        = document.getElementById('brawlerInfo');
+const btnActionBrawler   = document.getElementById('btnActionBrawler');
 
-function renderGearAndPotions(selId){
-  const eq = account.equipped[selId] || [null, null];
-  for (let i=0; i<2; i++){
-    const slotEl = document.getElementById('gearSlot' + i);
-    const itemId = eq[i];
-    const it = itemId ? ITEMS[itemId] : null;
-    if (it){
-      slotEl.className = 'gear-slot equipped';
-      slotEl.innerHTML = `<b>${it.icon} ${it.name}</b><br><span style="color:#86efac;font-size:10px">Нажатие снимет</span>`;
+function renderBuffsSelectorModal(){
+  const selId = account.selected;
+  if (!Array.isArray(account.equipped[selId])) account.equipped[selId] = [];
+  const activeList = account.equipped[selId];
+  const listEl = document.getElementById('buffSelectList');
+  listEl.innerHTML = '';
+
+  for (const id of SHOP_ORDER){
+    const it = BUFFS[id];
+    const owned = account.inventory[id] || 0;
+    const isEquipped = activeList.includes(id);
+
+    const card = document.createElement('div');
+    card.className = 'buff-select-card' + (isEquipped ? ' active-buff' : '');
+
+    let actionHtml = '';
+    if (it.kind === 'potion'){
+      const appliedCnt = id === 'fury_potion'
+        ? (account.potionsApplied[selId]?.fury || 0)
+        : (account.potionsApplied[selId]?.vital || 0);
+      actionHtml = `
+        <div style="text-align:right">
+          <div style="font-size:10px;color:#86efac;margin-bottom:3px">Выпито: ${appliedCnt}</div>
+          <button class="bs-shop-price-btn" style="width:auto;padding:5px 9px">${owned > 0 ? `ВЫПИТЬ (${owned})` : 'КУПИТЬ'}</button>
+        </div>
+      `;
     } else {
-      slotEl.className = 'gear-slot';
-      slotEl.innerHTML = `<b>Слот ${i+1}: Пусто</b><br><span style="color:#93c5fd;font-size:10px">Нажми, чтобы надеть предмет</span>`;
+      actionHtml = `
+        <div style="text-align:right">
+          <div style="font-size:10px;color:#bae6fd;margin-bottom:3px">${isEquipped ? 'АКТИВЕН' : `В сумке: ${owned}`}</div>
+          <button class="bs-shop-price-btn" style="width:auto;padding:5px 9px;background:${isEquipped ? 'linear-gradient(180deg,#fb7185,#be123c);color:#fff' : ''}">
+            ${isEquipped ? 'СНЯТЬ' : (owned > 0 ? 'ВЫБРАТЬ' : 'В МАГАЗИН')}
+          </button>
+        </div>
+      `;
     }
-    slotEl.onclick = () => {
-      if (eq[i]){
-        account.inventory[eq[i]] = (account.inventory[eq[i]] || 0) + 1;
-        eq[i] = null;
-        saveAccount();
-        renderLobby();
+
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:24px">${it.icon}</div>
+        <div>
+          <div style="font-size:12px;font-weight:900">${it.name} <span style="font-size:9px;color:#facc15">(${it.tier})</span></div>
+          <div style="font-size:10px;color:#cbd5e1">${it.desc}</div>
+        </div>
+      </div>
+      ${actionHtml}
+    `;
+
+    card.querySelector('button').onclick = () => {
+      if (it.kind === 'potion'){
+        if ((account.inventory[id] || 0) > 0){
+          account.inventory[id] -= 1;
+          if (id === 'fury_potion') account.potionsApplied[selId].fury = (account.potionsApplied[selId].fury || 0) + 1;
+          else account.potionsApplied[selId].vital = (account.potionsApplied[selId].vital || 0) + 1;
+          sfx.play(640, 980, 0.14);
+          saveAccount();
+          renderLobby();
+          renderBuffsSelectorModal();
+        } else {
+          buffsModal.classList.add('hidden');
+          brawlersModal.classList.add('hidden');
+          openShopModal();
+        }
         return;
       }
-      const ownedItemKey = Object.keys(ITEMS).find(k => ITEMS[k].kind === 'item' && (account.inventory[k] || 0) > 0);
-      if (ownedItemKey){
-        account.inventory[ownedItemKey] -= 1;
-        eq[i] = ownedItemKey;
-        sfx.play(580, 860, 0.12);
+
+      if (isEquipped){
+        account.equipped[selId] = activeList.filter(x => x !== id);
+        account.inventory[id] = (account.inventory[id] || 0) + 1;
+        sfx.play(420, 280, 0.1);
         saveAccount();
         renderLobby();
+        renderBuffsSelectorModal();
+      } else if ((account.inventory[id] || 0) > 0){
+        if (activeList.length >= 2){
+          const removed = activeList.shift();
+          account.inventory[removed] = (account.inventory[removed] || 0) + 1;
+        }
+        account.inventory[id] -= 1;
+        activeList.push(id);
+        sfx.play(580, 920, 0.14);
+        saveAccount();
+        renderLobby();
+        renderBuffsSelectorModal();
       } else {
+        buffsModal.classList.add('hidden');
         brawlersModal.classList.add('hidden');
         openShopModal();
       }
     };
+
+    listEl.appendChild(card);
   }
-
-  const potBox = document.getElementById('potionInventoryBox');
-  const furyCnt = account.inventory.fury_potion || 0;
-  const vitalCnt = account.inventory.vital_potion || 0;
-  const applied = account.potionsApplied[selId] || { fury: 0, vital: 0 };
-
-  potBox.innerHTML = `
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button id="btnUseFury" class="shop-buy-btn" style="flex:1">🧪 Ярость (${furyCnt}) • +${applied.fury*80} урона</button>
-      <button id="btnUseVital" class="shop-buy-btn" style="flex:1">⚗️ Титан (${vitalCnt}) • +${applied.vital*700} HP</button>
-    </div>
-  `;
-  document.getElementById('btnUseFury').onclick = () => {
-    if ((account.inventory.fury_potion || 0) > 0){
-      account.inventory.fury_potion -= 1;
-      account.potionsApplied[selId].fury = (account.potionsApplied[selId].fury || 0) + 1;
-      sfx.play(640, 980, 0.15);
-      saveAccount();
-      renderLobby();
-    }
-  };
-  document.getElementById('btnUseVital').onclick = () => {
-    if ((account.inventory.vital_potion || 0) > 0){
-      account.inventory.vital_potion -= 1;
-      account.potionsApplied[selId].vital = (account.potionsApplied[selId].vital || 0) + 1;
-      sfx.play(520, 880, 0.15);
-      saveAccount();
-      renderLobby();
-    }
-  };
 }
 
 function renderLobby(){
@@ -1153,7 +1469,7 @@ function renderLobby(){
     const card = document.createElement('div');
     card.className = 'brawler-card' + (account.selected === id ? ' selected' : '') + (!isUnlocked ? ' locked' : '');
     card.innerHTML = `
-      ${getCharacterSVG(id, 52)}
+      ${getCharacterSVG(id, 48)}
       <div class="b-name">${b.name}</div>
       <div class="b-lvl">${isUnlocked ? `Ур. ${lvl}` : `🔒 ${b.unlockCost} 🪙`}</div>
     `;
@@ -1165,18 +1481,18 @@ function renderLobby(){
     brawlersGrid.appendChild(card);
   }
 
-  document.getElementById('brawlerPreviewWrap').innerHTML = getCharacterSVG(selId, 86);
+  document.getElementById('brawlerPreviewWrap').innerHTML = getCharacterSVG(selId, 82);
   const unlocked = !!account.unlocked[selId];
   const upgCost = st.level * 120;
+  const activeBuffCount = (account.equipped[selId] || []).length;
+  document.getElementById('activeBuffsBadge').textContent = `Выбрано: ${activeBuffCount}/2`;
 
   brawlerInfo.innerHTML = `
     <div style="font-weight:900;font-size:13px;color:${st.color}">${st.name} • ${st.role}</div>
-    <div class="info-row"><span>HP:</span><b>${st.maxHp}</b></div>
+    <div class="info-row"><span>HP / Скорость:</span><b>${st.maxHp} HP • ${st.speed}</b></div>
     <div class="info-row"><span>Урон:</span><b>${st.dmg} × ${st.pellets} (❄️ ${st.freezeSec}с)</b></div>
     <div style="font-size:10px;color:#67e8f9;margin-top:2px">⚡ ${st.superDesc}</div>
   `;
-
-  renderGearAndPotions(selId);
 
   if (!unlocked){
     btnActionBrawler.className = 'btn btn-unlock';
@@ -1193,21 +1509,22 @@ function renderLobby(){
   document.getElementById('btnPlayBots').style.opacity = canPlay ? '1' : '0.45';
 }
 
+/* BRAWL STARS STYLE SHOP */
 function openShopModal(){
   document.getElementById('shopCoinsText').textContent = String(account.coins);
-  const list = document.getElementById('shopList');
-  list.innerHTML = '';
+  const grid = document.getElementById('shopGrid');
+  grid.innerHTML = '';
   for (const id of SHOP_ORDER){
-    const it = ITEMS[id];
+    const it = BUFFS[id];
     const cnt = account.inventory[id] || 0;
     const card = document.createElement('div');
-    card.className = 'shop-card';
+    card.className = `bs-shop-card rarity-${it.rarity}`;
     card.innerHTML = `
-      <div>
-        <div style="font-size:13px;font-weight:900">${it.icon} ${it.name} <span style="color:#86efac;font-size:11px">(в сумке: ${cnt})</span></div>
-        <div style="font-size:11px;color:#bae6fd">${it.desc}</div>
-      </div>
-      <button class="shop-buy-btn">${it.cost} 🪙</button>
+      <div class="bs-rarity-tag">${it.tier} • В сумке: ${cnt}</div>
+      <div class="bs-shop-art">${getBuffArtSVG(id)}</div>
+      <div class="bs-shop-title">${it.name}</div>
+      <div class="bs-shop-stat">${it.desc}</div>
+      <button class="bs-shop-price-btn">🪙 ${it.cost}</button>
     `;
     card.querySelector('button').onclick = () => {
       if (account.coins >= it.cost){
@@ -1221,10 +1538,142 @@ function openShopModal(){
         sfx.play(220, 140, 0.14);
       }
     };
-    list.appendChild(card);
+    grid.appendChild(card);
   }
   shopModal.classList.remove('hidden');
 }
+
+/* BRAWL STARS ONLINE MATCHMAKING */
+const matchmaking = {
+  timer: null,
+  channel: null,
+  foundPlayers: [],
+  channelKey: 'online_global',
+  roomLabel: 'ОНЛАЙН'
+};
+
+function cancelMatchmaking(){
+  if (matchmaking.timer){
+    clearInterval(matchmaking.timer);
+    matchmaking.timer = null;
+  }
+  if (matchmaking.channel && sb){
+    try { sb.removeChannel(matchmaking.channel); } catch(_){}
+  }
+  matchmaking.channel = null;
+  matchmakingScreen.classList.add('hidden');
+}
+
+function renderMatchmakingSlots(){
+  const grid = document.getElementById('mmSlotsGrid');
+  document.getElementById('mmCountText').textContent = `${matchmaking.foundPlayers.length}/6`;
+  let html = '';
+  for (let i=0; i<6; i++){
+    const pl = matchmaking.foundPlayers[i];
+    if (pl){
+      html += `
+        <div class="mm-slot found">
+          ${getCharacterSVG(pl.selected, 46)}
+          <div style="font-size:10px;font-weight:900;color:#fff;margin-top:2px">${escapeHtml(pl.nick)}</div>
+          <div style="font-size:9px;color:#86efac">${pl.isBot ? 'Бот' : 'Игрок'}</div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="mm-slot">
+          <div style="font-size:20px;opacity:0.45">🔍</div>
+          <div style="font-size:9px;color:#93c5fd;margin-top:4px">Поиск...</div>
+        </div>
+      `;
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function startOnlineMatchmaking(channelKey, roomLabel){
+  cancelMatchmaking();
+  matchmaking.channelKey = channelKey;
+  matchmaking.roomLabel = roomLabel;
+  matchmaking.foundPlayers = [{
+    id: account.id,
+    nick: account.nick,
+    selected: account.selected,
+    isBot: false
+  }];
+
+  lobbyScreen.classList.add('hidden');
+  matchmakingScreen.classList.remove('hidden');
+  document.getElementById('mmSubtitle').textContent = `Режим: ${roomLabel} • Ищем бойцов...`;
+  renderMatchmakingSlots();
+  sfx.play(480, 680, 0.12);
+
+  if (sb){
+    try {
+      const ch = sb.channel('fight_friz_queue_' + channelKey.replace(/[^a-zA-Z0-9_-]/g, '_'), {
+        config: { presence: { key: account.id } }
+      });
+      ch.on('presence', { event: 'sync' }, () => {
+        const state = ch.presenceState();
+        for (const [k, arr] of Object.entries(state)){
+          if (k === account.id) continue;
+          if (!matchmaking.foundPlayers.some(p => p.id === k) && matchmaking.foundPlayers.length < 6){
+            const meta = (arr && arr[0]) || {};
+            matchmaking.foundPlayers.push({
+              id: k,
+              nick: meta.nick || 'Игрок',
+              selected: BRAWLERS[meta.selected] ? meta.selected : 'friz',
+              isBot: false
+            });
+            sfx.play(560, 780, 0.08);
+            renderMatchmakingSlots();
+          }
+        }
+      });
+      ch.subscribe(async status => {
+        if (status === 'SUBSCRIBED'){
+          try { await ch.track({ nick: account.nick, selected: account.selected }); } catch(_){}
+        }
+      });
+      matchmaking.channel = ch;
+    } catch(_){}
+  }
+
+  let ticks = 0;
+  matchmaking.timer = setInterval(() => {
+    ticks += 1;
+    if (matchmaking.foundPlayers.length < 6 && ticks >= 2){
+      const idx = matchmaking.foundPlayers.length;
+      const bId = BRAWLER_ORDER[idx % BRAWLER_ORDER.length];
+      matchmaking.foundPlayers.push({
+        id: 'mm_bot_' + idx,
+        nick: BOT_NAMES[(idx - 1) % BOT_NAMES.length],
+        selected: bId,
+        isBot: true
+      });
+      sfx.play(520, 740, 0.07);
+      renderMatchmakingSlots();
+    }
+
+    if (matchmaking.foundPlayers.length >= 6){
+      clearInterval(matchmaking.timer);
+      matchmaking.timer = null;
+      document.getElementById('mmSubtitle').textContent = 'Игроки найдены! Заходим на арену...';
+      sfx.play(660, 990, 0.18);
+      setTimeout(() => {
+        const ck = matchmaking.channelKey;
+        const rl = matchmaking.roomLabel;
+        cancelMatchmaking();
+        startMatch(ck, rl, false);
+      }, 650);
+    }
+  }, 550);
+}
+
+document.getElementById('btnCancelMatchmaking').onclick = () => {
+  cancelMatchmaking();
+  lobbyScreen.classList.remove('hidden');
+  renderLobby();
+};
 
 function renderSettingsUI(){
   document.getElementById('btnToggleSound').textContent = settings.sound ? 'ВКЛ' : 'ВЫКЛ';
@@ -1278,12 +1727,12 @@ document.getElementById('btnAdminLogin').onclick = () => {
 };
 
 document.getElementById('btnAdmCoins').onclick = () => {
-  account.coins += 1000;
+  account.coins += 2000;
   saveAccount();
   renderLobby();
 };
 document.getElementById('btnAdmTrophies').onclick = () => {
-  account.trophies += 100;
+  account.trophies += 150;
   saveAccount();
   renderLobby();
 };
@@ -1303,15 +1752,10 @@ document.getElementById('btnAdmItems').onclick = () => {
   renderLobby();
 };
 document.getElementById('btnAdmReset').onclick = () => {
-  account.trophies = 0;
-  account.coins = 200;
-  account.xp = 0;
-  account.selected = 'friz';
-  account.unlocked = { friz: true, volt: false, titan: false };
-  account.levels = { friz: 1, volt: 1, titan: 1 };
-  account.inventory = { cryo_core: 0, frost_plate: 0, glacier_boots: 0, fury_potion: 0, vital_potion: 0 };
-  account.equipped = { friz: [null, null], volt: [null, null], titan: [null, null] };
-  account.potionsApplied = { friz: { fury: 0, vital: 0 }, volt: { fury: 0, vital: 0 }, titan: { fury: 0, vital: 0 } };
+  const fresh = createDefaultAccount();
+  fresh.id = account.id;
+  fresh.nick = account.nick;
+  account = fresh;
   saveAccount();
   renderLobby();
 };
@@ -1346,6 +1790,14 @@ btnActionBrawler.onclick = () => {
 
 document.getElementById('btnOpenBrawlers').onclick = () => { renderLobby(); brawlersModal.classList.remove('hidden'); };
 document.getElementById('btnCloseBrawlers').onclick = () => brawlersModal.classList.add('hidden');
+document.getElementById('btnOpenBuffSelector').onclick = () => {
+  renderBuffsSelectorModal();
+  buffsModal.classList.remove('hidden');
+};
+document.getElementById('btnCloseBuffs').onclick = () => {
+  buffsModal.classList.add('hidden');
+  renderLobby();
+};
 document.getElementById('btnOpenShop').onclick = openShopModal;
 document.getElementById('btnCloseShop').onclick = () => shopModal.classList.add('hidden');
 document.getElementById('btnOpenPass').onclick = () => soonModal.classList.remove('hidden');
@@ -1429,9 +1881,9 @@ document.getElementById('btnPlayOnline').onclick = () => {
     if (lobbyNet.partyCh){
       try { lobbyNet.partyCh.send({ type: 'broadcast', event: 'start_party_match', payload: { matchKey } }); } catch(_){}
     }
-    startMatch(matchKey, 'ЛОББИ ' + lobbyNet.partyCode, false);
+    startOnlineMatchmaking(matchKey, 'ЛОББИ ' + lobbyNet.partyCode);
   } else {
-    startMatch('online_global', 'ОНЛАЙН', false);
+    startOnlineMatchmaking('online_global', 'ОНЛАЙН');
   }
 };
 
@@ -1976,7 +2428,9 @@ function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН', bo
   }
 
   lobbyScreen.classList.add('hidden');
+  matchmakingScreen.classList.add('hidden');
   brawlersModal.classList.add('hidden');
+  buffsModal.classList.add('hidden');
   shopModal.classList.add('hidden');
   settingsModal.classList.add('hidden');
   adminModal.classList.add('hidden');
@@ -2017,18 +2471,18 @@ function findAutoAimAngle(shooter){
   return best ? Math.atan2(best.y - shooter.y, best.x - shooter.x) : shooter.angle;
 }
 
-function spawnVolley(f, ang, isSuper){
+function spawnVolley(f, ang, isSuper, overridePellets = null, overrideSpread = null){
   const b = f.brawler;
   const cubeMult = 1 + f.cubes * 0.1;
   const dmg = Math.round(b.dmg * cubeMult * (isSuper ? 1.25 : 1));
-  const pellets = isSuper && b.id === 'friz' ? 8 : b.pellets;
-  const spread  = isSuper && b.id === 'friz' ? 0.46 : b.spread;
+  const pellets = overridePellets || (isSuper && b.id === 'friz' ? 8 : (isSuper && b.id === 'boreas' ? 14 : b.pellets));
+  const spread  = overrideSpread !== null ? overrideSpread : (isSuper && b.id === 'friz' ? 0.46 : (isSuper && b.id === 'boreas' ? 0.72 : b.spread));
   const range   = isSuper ? b.range * 1.3 : b.range;
   const freezeSec = isSuper ? b.freezeSec * 1.35 : b.freezeSec * 0.55;
 
   const created = [];
   for (let i=0; i<pellets; i++){
-    const offset = pellets === 1 ? rand(-spread, spread) : lerp(-spread/2, spread/2, i/(pellets-1)) + rand(-0.03, 0.03);
+    const offset = pellets === 1 ? rand(-spread, spread) : lerp(-spread/2, spread/2, i/(pellets-1)) + rand(-0.02, 0.02);
     const a = ang + offset;
     const bullet = {
       ownerId: f.id,
@@ -2069,6 +2523,17 @@ function fireFighter(f, isSuper, overrideAngle = null){
       f.dashTimer = 0.36;
       f.dashVx = Math.cos(ang) * 780;
       f.dashVy = Math.sin(ang) * 780;
+      return;
+    }
+    if (b.id === 'spark'){
+      f.dashTimer = 0.24;
+      f.dashVx = Math.cos(ang) * 860;
+      f.dashVy = Math.sin(ang) * 860;
+      spawnVolley(f, ang, true, 6, 0.55);
+      return;
+    }
+    if (b.id === 'glacier'){
+      spawnVolley(f, ang, true, 12, Math.PI * 1.85);
       return;
     }
     if (b.id === 'volt'){
@@ -2625,4 +3090,4 @@ requestAnimationFrame(loop);
 })();
 </script>
 </body>
-</html>
+</html>'''
