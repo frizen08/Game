@@ -127,6 +127,10 @@
     padding:2px 10px;font-size:11px;font-weight:900;color:#fff;margin-bottom:2px;
     box-shadow:0 2px 0 #040912;
   }
+  .bs-skin-tag{
+    font-size:9px;font-weight:900;color:#f472b6;background:rgba(4,9,18,0.8);
+    border:1px solid #f472b6;border-radius:99px;padding:1px 7px;margin-bottom:2px;
+  }
   .bs-pedestal-disc{
     width:132px;height:24px;border-radius:50%;
     background:radial-gradient(ellipse at center, #7dd3fc 0%, #0284c7 62%, #040912 100%);
@@ -188,7 +192,6 @@
     max-height:93vh;overflow-y:auto;
   }
 
-  /* Mode Selection Cards (Brawl Stars Events style) */
   .mode-grid{display:flex;flex-direction:column;gap:9px;margin:10px 0;text-align:left}
   .mode-card{
     position:relative;border:2.5px solid #040912;border-radius:15px;padding:12px 13px;
@@ -223,6 +226,20 @@
   .b-name{font-size:11px;font-weight:900;margin-top:1px}
   .b-lvl{font-size:9px;font-weight:800;color:#4ade80;margin-top:1px}
 
+  /* Skin Switcher Bar in Brawlers Modal */
+  .skin-bar{
+    display:flex;gap:5px;margin:6px 0;justify-content:center;
+  }
+  .skin-pill{
+    flex:1;padding:6px 5px;border-radius:10px;border:2px solid #040912;
+    background:#0b1930;color:#e2e8f0;font-size:9.5px;font-weight:900;
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;
+  }
+  .skin-pill.active{
+    border-color:#f472b6;background:linear-gradient(180deg,#831843 0%,#4c0519 100%);color:#fff;
+  }
+  .skin-pill.locked{opacity:0.65}
+
   /* Single Buffs Button & Buff List */
   .buff-btn-single{
     width:100%;padding:10px 12px;border-radius:12px;border:2px solid #040912;
@@ -249,14 +266,17 @@
     display:flex;justify-content:space-between;align-items:center;
     box-shadow:0 3px 0 #040912;
   }
-  .shop-tabs{display:flex;gap:5px;margin-bottom:8px}
+  .shop-tabs{display:flex;gap:4px;margin-bottom:8px}
   .shop-tab-btn{
-    flex:1;padding:6px 4px;border-radius:9px;border:2px solid #040912;
-    background:#0c1e3a;color:#bae6fd;font-size:10px;font-weight:900;cursor:pointer;
+    flex:1;padding:6px 3px;border-radius:9px;border:2px solid #040912;
+    background:#0c1e3a;color:#bae6fd;font-size:9.5px;font-weight:900;cursor:pointer;
     text-transform:uppercase;
   }
   .shop-tab-btn.active{
     background:linear-gradient(180deg,#38bdf8 0%,#0284c7 100%);color:#04101f;
+  }
+  .shop-tab-btn.tab-skins.active{
+    background:linear-gradient(180deg,#f472b6 0%,#db2777 100%);color:#fff;
   }
   .bs-shop-grid{
     display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0;
@@ -273,13 +293,14 @@
   .bs-shop-card.rarity-epic{background:linear-gradient(180deg,#7e22ce 0%,#2e1065 100%)}
   .bs-shop-card.rarity-mythic{background:linear-gradient(180deg,#e11d48 0%,#4c0519 100%)}
   .bs-shop-card.rarity-legendary{background:linear-gradient(180deg,#d97706 0%,#451a03 100%);border-color:#facc15}
+  .bs-shop-card.rarity-anime{background:linear-gradient(180deg,#be185d 0%,#3b0764 100%);border-color:#f472b6}
 
   .bs-rarity-tag{
-    font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;
-    background:rgba(0,0,0,0.55);padding:2px 7px;border-radius:99px;margin-bottom:4px;
+    font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:0.4px;
+    background:rgba(0,0,0,0.58);padding:2px 7px;border-radius:99px;margin-bottom:4px;
   }
   .bs-shop-art{
-    width:54px;height:54px;border-radius:14px;background:radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(0,0,0,0.25) 100%);
+    width:58px;height:58px;border-radius:14px;background:radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(0,0,0,0.25) 100%);
     display:flex;align-items:center;justify-content:center;margin:2px 0 5px;
     box-shadow:inset 0 0 10px rgba(255,255,255,0.15);
   }
@@ -290,6 +311,12 @@
     font-size:11px;font-weight:900;cursor:pointer;
     background:linear-gradient(180deg,#4ade80 0%,#16a34a 100%);color:#052e16;
     box-shadow:0 2.5px 0 #040912;
+  }
+  .bs-shop-price-btn.owned-skin{
+    background:linear-gradient(180deg,#38bdf8 0%,#0284c7 100%);color:#04101f;
+  }
+  .bs-shop-price-btn.equipped-skin{
+    background:linear-gradient(180deg,#f472b6 0%,#db2777 100%);color:#fff;
   }
   .bs-shop-price-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #040912}
 
@@ -391,6 +418,7 @@
 
       <div class="bs-hero-pedestal">
         <div id="heroStageName" class="bs-hero-tag">ФРИЗ • Ур. 1</div>
+        <div id="heroSkinName" class="bs-skin-tag hidden">✨ Аниме Скин</div>
         <div id="heroStageAvatar"></div>
         <div class="bs-pedestal-disc"></div>
       </div>
@@ -410,7 +438,7 @@
       </button>
       <button id="btnOpenShop" class="bs-nav-btn btn-shop">
         <span>🛒 МАГАЗИН</span>
-        <span style="font-size:9px;background:#040912;padding:2px 5px;border-radius:6px;color:#fde047">40 ЗЕЛЕК</span>
+        <span style="font-size:9px;background:#040912;padding:2px 5px;border-radius:6px;color:#f472b6">СКИНЫ</span>
       </button>
       <button id="btnOpenPass" class="bs-nav-btn btn-pass">
         <span>🎫 FRIZ PASS</span>
@@ -518,6 +546,8 @@
       <div id="brawlerInfo" class="info-panel" style="flex:1;margin:0"></div>
     </div>
 
+    <div id="brawlerSkinsBar" class="skin-bar"></div>
+
     <button id="btnOpenBuffSelector" class="buff-btn-single">
       <span>🧪 ЗЕЛЬЯ И БАФЫ БОЙЦА</span>
       <span id="activeBuffsBadge" style="background:#040912;padding:2px 8px;border-radius:8px;color:#facc15">Бафов: 0/2</span>
@@ -533,25 +563,26 @@
   <div class="modal-box">
     <div style="font-size:17px;font-weight:900;color:#e879f9">🧪 ЗЕЛЬЯ И БАФЫ БОЙЦА</div>
     <div style="font-size:11px;color:#bae6fd;margin-top:3px">
-      Выпивай купленные <b>зелья</b> для постоянного усиления статов или ставь до <b>2 бафов</b>!
+      Выпитое <b>зелье</b> усиливает бойца только на <b>1 следующую катку</b>, а <b>бафы</b> (до 2) действуют постоянно!
     </div>
     <div id="buffSelectList" class="buff-select-list"></div>
     <button id="btnCloseBuffs" class="btn btn-play">ГОТОВО</button>
   </div>
 </div>
 
-<!-- BRAWL-STYLE SHOP MODAL (40 POTIONS + BUFFS) -->
+<!-- BRAWL-STYLE SHOP MODAL (SKINS + 40 POTIONS + BUFFS) -->
 <div id="shopModal" class="screen hidden">
   <div class="modal-box">
     <div class="bs-shop-banner">
       <div style="text-align:left">
-        <div style="font-size:16px;font-weight:900;text-shadow:0 1.5px 0 #000">🧪 ЛАВКА 40 ЗЕЛЕК</div>
-        <div style="font-size:10px;opacity:0.95">Эликсиры статов и боевые бафы</div>
+        <div style="font-size:16px;font-weight:900;text-shadow:0 1.5px 0 #000">🛒 МАГАЗИН FIGHT FRIZ</div>
+        <div style="font-size:10px;opacity:0.95">Аниме-скины (12), зелья на 1 бой и бафы</div>
       </div>
       <div class="bs-pill bs-pill-coins" style="font-size:13px">🪙 <span id="shopCoinsText">200</span></div>
     </div>
     <div class="shop-tabs">
-      <button id="tabShopPotions" class="shop-tab-btn active">🧪 40 Зелек</button>
+      <button id="tabShopSkins" class="shop-tab-btn tab-skins active">🌸 Скины (12)</button>
+      <button id="tabShopPotions" class="shop-tab-btn">🧪 Зелья (40)</button>
       <button id="tabShopBuffs" class="shop-tab-btn">✨ Бафы</button>
       <button id="tabShopAll" class="shop-tab-btn">📦 Все</button>
     </div>
@@ -596,9 +627,9 @@
 
     <div id="adminPanelBox" class="hidden">
       <div style="font-size:11px;color:#86efac;margin:4px 0 8px">Доступ активирован. Выдача ресурсов:</div>
-      <button id="btnAdmCoins" class="btn btn-upg">+5 000 МОНЕТ 🪙</button>
+      <button id="btnAdmCoins" class="btn btn-upg">+10 000 МОНЕТ 🪙</button>
       <button id="btnAdmTrophies" class="btn btn-play">+150 КУБКОВ 🏆</button>
-      <button id="btnAdmUnlockAll" class="btn btn-unlock">ОТКРЫТЬ ВСЕХ 6 БОЙЦОВ + УР. 9</button>
+      <button id="btnAdmUnlockAll" class="btn btn-unlock">ОТКРЫТЬ ВСЕХ 6 БОЙЦОВ + ВСЕ 12 СКИНОВ</button>
       <button id="btnAdmItems" class="btn btn-upg">ВЫДАТЬ ВСЕ 40 ЗЕЛЕК И БАФЫ (×5)</button>
       <button id="btnAdmReset" class="btn btn-admin">СБРОСИТЬ ПРОГРЕСС</button>
     </div>
@@ -844,51 +875,229 @@ const BRAWLERS = {
 };
 const BRAWLER_ORDER = ['friz', 'volt', 'titan', 'glacier', 'spark', 'boreas'];
 
-/* EQUIPABLE BUFFS + 40 DISTINCT POTIONS */
+/* 12 ANIME SKINS (2 PER BRAWLER) */
+const SKINS = {
+  friz_sakura: {
+    id: 'friz_sakura',
+    brawlerId: 'friz',
+    name: 'Сакура Фриз',
+    tag: '🌸 Аниме • Фриз',
+    cost: 350,
+    bodyColor: '#f472b6',
+    hatColor: '#be185d',
+    eyeColor: '#db2777',
+    hairStyle: 'sakura',
+    auraColor: '#fbcfe8',
+    bulletColor: '#f472b6',
+    desc: 'Розовое кимоно, лепестки сакуры и аниме-глаза'
+  },
+  friz_shinobi: {
+    id: 'friz_shinobi',
+    brawlerId: 'friz',
+    name: 'Шиноби Фриз',
+    tag: '🥷 Аниме • Фриз',
+    cost: 480,
+    bodyColor: '#1e293b',
+    hatColor: '#0284c7',
+    eyeColor: '#38bdf8',
+    hairStyle: 'spiky',
+    auraColor: '#38bdf8',
+    bulletColor: '#38bdf8',
+    desc: 'Повязка ниндзя с крио-символом и сияющие глаза'
+  },
+
+  volt_cyber: {
+    id: 'volt_cyber',
+    brawlerId: 'volt',
+    name: 'Неон-Сенпай Вольт',
+    tag: '⚡ Аниме • Вольт',
+    cost: 420,
+    bodyColor: '#06b6d4',
+    hatColor: '#f472b6',
+    eyeColor: '#22d3ee',
+    hairStyle: 'twintails',
+    auraColor: '#67e8f9',
+    bulletColor: '#22d3ee',
+    desc: 'Кибер-наушники, неоновые хвостики и лазерный прицел'
+  },
+  volt_akuma: {
+    id: 'volt_akuma',
+    brawlerId: 'volt',
+    name: 'Акума Вольт',
+    tag: '👹 Аниме • Вольт',
+    cost: 560,
+    bodyColor: '#991b1b',
+    hatColor: '#facc15',
+    eyeColor: '#facc15',
+    hairStyle: 'oni',
+    auraColor: '#f87171',
+    bulletColor: '#fb7185',
+    desc: 'Маска демона Они, золотые рожки и алая чакра'
+  },
+
+  titan_mecha: {
+    id: 'titan_mecha',
+    brawlerId: 'titan',
+    name: 'Меха-Ева Титан',
+    tag: '🤖 Аниме • Титан',
+    cost: 500,
+    bodyColor: '#7e22ce',
+    hatColor: '#4ade80',
+    eyeColor: '#4ade80',
+    hairStyle: 'mecha',
+    auraColor: '#a855f7',
+    bulletColor: '#c084fc',
+    desc: 'Фиолетово-зелёный экзоскелет в стиле меха-аниме'
+  },
+  titan_samurai: {
+    id: 'titan_samurai',
+    brawlerId: 'titan',
+    name: 'Сёгун Титан',
+    tag: '⚔️ Аниме • Титан',
+    cost: 650,
+    bodyColor: '#dc2626',
+    hatColor: '#facc15',
+    eyeColor: '#fde047',
+    hairStyle: 'kabuto',
+    auraColor: '#fbbf24',
+    bulletColor: '#f59e0b',
+    desc: 'Шлем Кабуто с золотым полумесяцем и броня самурая'
+  },
+
+  glacier_yuki: {
+    id: 'glacier_yuki',
+    brawlerId: 'glacier',
+    name: 'Юки-Онна Глетчер',
+    tag: '❄️ Аниме • Глетчер',
+    cost: 520,
+    bodyColor: '#e0f2fe',
+    hatColor: '#60a5fa',
+    eyeColor: '#2563eb',
+    hairStyle: 'longhair',
+    auraColor: '#bae6fd',
+    bulletColor: '#7dd3fc',
+    desc: 'Дух снежной бури с длинными серебряными волосами'
+  },
+  glacier_alchemist: {
+    id: 'glacier_alchemist',
+    brawlerId: 'glacier',
+    name: 'Крио-Алхимик Глетчер',
+    tag: '🔮 Аниме • Глетчер',
+    cost: 680,
+    bodyColor: '#0f766e',
+    hatColor: '#f59e0b',
+    eyeColor: '#fbbf24',
+    hairStyle: 'spiky',
+    auraColor: '#2dd4bf',
+    bulletColor: '#2dd4bf',
+    desc: 'Алый плащ алхимика и золотые кристаллы трансмутации'
+  },
+
+  spark_neko: {
+    id: 'spark_neko',
+    brawlerId: 'spark',
+    name: 'Неко-Тян Спарк',
+    tag: '🐱 Аниме • Спарк',
+    cost: 580,
+    bodyColor: '#ec4899',
+    hatColor: '#1f2937',
+    eyeColor: '#f472b6',
+    hairStyle: 'neko',
+    auraColor: '#f9a8d4',
+    bulletColor: '#f472b6',
+    desc: 'Кошачьи ушки, колокольчик и кавайные молнии'
+  },
+  spark_raijin: {
+    id: 'spark_raijin',
+    brawlerId: 'spark',
+    name: 'Райдзин Спарк',
+    tag: '🌩️ Аниме • Спарк',
+    cost: 740,
+    bodyColor: '#4f46e5',
+    hatColor: '#fde047',
+    eyeColor: '#fde047',
+    hairStyle: 'halo',
+    auraColor: '#fde047',
+    bulletColor: '#fde047',
+    desc: 'Кольцо барабанов бога грома за спиной и золотые волосы'
+  },
+
+  boreas_kitsune: {
+    id: 'boreas_kitsune',
+    brawlerId: 'boreas',
+    name: 'Кицунэ Борей',
+    tag: '🦊 Аниме • Борей',
+    cost: 790,
+    bodyColor: '#f97316',
+    hatColor: '#fff7ed',
+    eyeColor: '#ea580c',
+    hairStyle: 'kitsune',
+    auraColor: '#fdba74',
+    bulletColor: '#fb923c',
+    desc: 'Лисьи уши, маска Кицунэ и пламя девяти хвостов'
+  },
+  boreas_celestial: {
+    id: 'boreas_celestial',
+    brawlerId: 'boreas',
+    name: 'Ультра-Инстинкт Борей',
+    tag: '🌌 Аниме • Борей',
+    cost: 950,
+    bodyColor: '#1d4ed8',
+    hatColor: '#f8fafc',
+    eyeColor: '#e2e8f0',
+    hairStyle: 'ui_aura',
+    auraColor: '#93c5fd',
+    bulletColor: '#e0f2fe',
+    desc: 'Серебряная аура богов и ослепительный ледяной шквал'
+  }
+};
+const SKIN_ORDER = Object.keys(SKINS);
+
+/* 40 DISTINCT POTIONS (RAISED PRICES, SINGLE-MATCH DURATION) */
 const POTION_DEFS = [
-  { id: 'pot_01', name: 'Зелье искры', icon: '🧪', rarity: 'rare', cost: 45, bonusDmg: 25 },
-  { id: 'pot_02', name: 'Зелье бодрости', icon: '⚗️', rarity: 'rare', cost: 45, bonusHp: 220 },
-  { id: 'pot_03', name: 'Зелье ветерка', icon: '🧴', rarity: 'rare', cost: 50, bonusSpeed: 5 },
-  { id: 'pot_04', name: 'Зелье инея', icon: '🧊', rarity: 'rare', cost: 55, bonusFreeze: 0.08 },
-  { id: 'pot_05', name: 'Зелье темпа', icon: '⏳', rarity: 'rare', cost: 60, bonusReload: 0.02 },
-  { id: 'pot_06', name: 'Зелье остроты', icon: '🗡️', rarity: 'rare', cost: 65, bonusDmg: 35 },
-  { id: 'pot_07', name: 'Зелье стойкости', icon: '🛡️', rarity: 'rare', cost: 65, bonusHp: 320 },
-  { id: 'pot_08', name: 'Зелье спринта', icon: '👟', rarity: 'rare', cost: 70, bonusSpeed: 7 },
-  { id: 'pot_09', name: 'Зелье стужи', icon: '❄️', rarity: 'rare', cost: 75, bonusFreeze: 0.12 },
-  { id: 'pot_10', name: 'Зелье баланса', icon: '⚖️', rarity: 'rare', cost: 80, bonusDmg: 20, bonusHp: 200 },
+  { id: 'pot_01', name: 'Зелье искры', icon: '🧪', rarity: 'rare', cost: 110, bonusDmg: 30 },
+  { id: 'pot_02', name: 'Зелье бодрости', icon: '⚗️', rarity: 'rare', cost: 110, bonusHp: 280 },
+  { id: 'pot_03', name: 'Зелье ветерка', icon: '🧴', rarity: 'rare', cost: 120, bonusSpeed: 7 },
+  { id: 'pot_04', name: 'Зелье инея', icon: '🧊', rarity: 'rare', cost: 130, bonusFreeze: 0.12 },
+  { id: 'pot_05', name: 'Зелье темпа', icon: '⏳', rarity: 'rare', cost: 140, bonusReload: 0.04 },
+  { id: 'pot_06', name: 'Зелье остроты', icon: '🗡️', rarity: 'rare', cost: 150, bonusDmg: 45 },
+  { id: 'pot_07', name: 'Зелье стойкости', icon: '🛡️', rarity: 'rare', cost: 150, bonusHp: 400 },
+  { id: 'pot_08', name: 'Зелье спринта', icon: '👟', rarity: 'rare', cost: 160, bonusSpeed: 10 },
+  { id: 'pot_09', name: 'Зелье стужи', icon: '❄️', rarity: 'rare', cost: 170, bonusFreeze: 0.16 },
+  { id: 'pot_10', name: 'Зелье баланса', icon: '⚖️', rarity: 'rare', cost: 185, bonusDmg: 30, bonusHp: 280 },
 
-  { id: 'pot_11', name: 'Зелье ярости', icon: '🔥', rarity: 'epic', cost: 95, bonusDmg: 55 },
-  { id: 'pot_12', name: 'Зелье титана', icon: '🪨', rarity: 'epic', cost: 95, bonusHp: 500 },
-  { id: 'pot_13', name: 'Зелье вихря', icon: '🌪️', rarity: 'epic', cost: 100, bonusSpeed: 10 },
-  { id: 'pot_14', name: 'Зелье вечной мерзлоты', icon: '🏔️', rarity: 'epic', cost: 105, bonusFreeze: 0.18 },
-  { id: 'pot_15', name: 'Зелье импульса', icon: '⚡', rarity: 'epic', cost: 110, bonusReload: 0.04 },
-  { id: 'pot_16', name: 'Зелье снайпера', icon: '🎯', rarity: 'epic', cost: 115, bonusDmg: 65 },
-  { id: 'pot_17', name: 'Зелье бастиона', icon: '🏰', rarity: 'epic', cost: 115, bonusHp: 620 },
-  { id: 'pot_18', name: 'Зелье охотника', icon: '🏹', rarity: 'epic', cost: 120, bonusDmg: 40, bonusSpeed: 6 },
-  { id: 'pot_19', name: 'Зелье стража', icon: '🔰', rarity: 'epic', cost: 125, bonusHp: 420, bonusFreeze: 0.1 },
-  { id: 'pot_20', name: 'Зелье дуэлянта', icon: '⚔️', rarity: 'epic', cost: 130, bonusDmg: 45, bonusReload: 0.03 },
+  { id: 'pot_11', name: 'Зелье ярости', icon: '🔥', rarity: 'epic', cost: 220, bonusDmg: 70 },
+  { id: 'pot_12', name: 'Зелье титана', icon: '🪨', rarity: 'epic', cost: 220, bonusHp: 650 },
+  { id: 'pot_13', name: 'Зелье вихря', icon: '🌪️', rarity: 'epic', cost: 235, bonusSpeed: 14 },
+  { id: 'pot_14', name: 'Зелье вечной мерзлоты', icon: '🏔️', rarity: 'epic', cost: 250, bonusFreeze: 0.24 },
+  { id: 'pot_15', name: 'Зелье импульса', icon: '⚡', rarity: 'epic', cost: 260, bonusReload: 0.06 },
+  { id: 'pot_16', name: 'Зелье снайпера', icon: '🎯', rarity: 'epic', cost: 275, bonusDmg: 85 },
+  { id: 'pot_17', name: 'Зелье бастиона', icon: '🏰', rarity: 'epic', cost: 275, bonusHp: 800 },
+  { id: 'pot_18', name: 'Зелье охотника', icon: '🏹', rarity: 'epic', cost: 290, bonusDmg: 55, bonusSpeed: 9 },
+  { id: 'pot_19', name: 'Зелье стража', icon: '🔰', rarity: 'epic', cost: 300, bonusHp: 560, bonusFreeze: 0.15 },
+  { id: 'pot_20', name: 'Зелье дуэлянта', icon: '⚔️', rarity: 'epic', cost: 315, bonusDmg: 65, bonusReload: 0.05 },
 
-  { id: 'pot_21', name: 'Зелье берсерка', icon: '💢', rarity: 'mythic', cost: 150, bonusDmg: 95 },
-  { id: 'pot_22', name: 'Зелье колосса', icon: '🗿', rarity: 'mythic', cost: 150, bonusHp: 850 },
-  { id: 'pot_23', name: 'Зелье кометы', icon: '☄️', rarity: 'mythic', cost: 155, bonusSpeed: 14 },
-  { id: 'pot_24', name: 'Зелье ледника', icon: '💠', rarity: 'mythic', cost: 160, bonusFreeze: 0.25 },
-  { id: 'pot_25', name: 'Зелье форсажа', icon: '🚀', rarity: 'mythic', cost: 165, bonusReload: 0.06 },
-  { id: 'pot_26', name: 'Зелье грозы', icon: '🌩️', rarity: 'mythic', cost: 170, bonusDmg: 80, bonusSpeed: 8 },
-  { id: 'pot_27', name: 'Зелье цитадели', icon: '🧱', rarity: 'mythic', cost: 175, bonusHp: 750, bonusDmg: 45 },
-  { id: 'pot_28', name: 'Зелье крио-ядра', icon: '🔮', rarity: 'mythic', cost: 180, bonusFreeze: 0.2, bonusDmg: 60 },
-  { id: 'pot_29', name: 'Зелье фантома', icon: '👻', rarity: 'mythic', cost: 185, bonusSpeed: 12, bonusReload: 0.05 },
-  { id: 'pot_30', name: 'Зелье чемпиона', icon: '🏅', rarity: 'mythic', cost: 195, bonusDmg: 75, bonusHp: 650 },
+  { id: 'pot_21', name: 'Зелье берсерка', icon: '💢', rarity: 'mythic', cost: 360, bonusDmg: 120 },
+  { id: 'pot_22', name: 'Зелье колосса', icon: '🗿', rarity: 'mythic', cost: 360, bonusHp: 1100 },
+  { id: 'pot_23', name: 'Зелье кометы', icon: '☄️', rarity: 'mythic', cost: 380, bonusSpeed: 18 },
+  { id: 'pot_24', name: 'Зелье ледника', icon: '💠', rarity: 'mythic', cost: 395, bonusFreeze: 0.32 },
+  { id: 'pot_25', name: 'Зелье форсажа', icon: '🚀', rarity: 'mythic', cost: 410, bonusReload: 0.09 },
+  { id: 'pot_26', name: 'Зелье грозы', icon: '🌩️', rarity: 'mythic', cost: 425, bonusDmg: 105, bonusSpeed: 12 },
+  { id: 'pot_27', name: 'Зелье цитадели', icon: '🧱', rarity: 'mythic', cost: 440, bonusHp: 950, bonusDmg: 65 },
+  { id: 'pot_28', name: 'Зелье крио-ядра', icon: '🔮', rarity: 'mythic', cost: 455, bonusFreeze: 0.28, bonusDmg: 80 },
+  { id: 'pot_29', name: 'Зелье фантома', icon: '👻', rarity: 'mythic', cost: 470, bonusSpeed: 16, bonusReload: 0.07 },
+  { id: 'pot_30', name: 'Зелье чемпиона', icon: '🏅', rarity: 'mythic', cost: 490, bonusDmg: 95, bonusHp: 850 },
 
-  { id: 'pot_31', name: 'Эликсир сверхновой', icon: '💥', rarity: 'legendary', cost: 220, bonusDmg: 140 },
-  { id: 'pot_32', name: 'Эликсир бессмертия', icon: '💖', rarity: 'legendary', cost: 220, bonusHp: 1250 },
-  { id: 'pot_33', name: 'Эликсир света', icon: '✨', rarity: 'legendary', cost: 230, bonusSpeed: 19 },
-  { id: 'pot_34', name: 'Эликсир абсолютного нуля', icon: '🌌', rarity: 'legendary', cost: 240, bonusFreeze: 0.35 },
-  { id: 'pot_35', name: 'Эликсир гипер-заряда', icon: '🔋', rarity: 'legendary', cost: 245, bonusReload: 0.09 },
-  { id: 'pot_36', name: 'Эликсир дракона', icon: '🐉', rarity: 'legendary', cost: 260, bonusDmg: 115, bonusHp: 900 },
-  { id: 'pot_37', name: 'Эликсир шторма', icon: '🌊', rarity: 'legendary', cost: 270, bonusDmg: 105, bonusSpeed: 13 },
-  { id: 'pot_38', name: 'Эликсир ледяного короля', icon: '👑', rarity: 'legendary', cost: 285, bonusFreeze: 0.28, bonusHp: 950 },
-  { id: 'pot_39', name: 'Эликсир омеги', icon: '🔱', rarity: 'legendary', cost: 300, bonusDmg: 130, bonusReload: 0.07 },
-  { id: 'pot_40', name: 'Эликсир Фриза', icon: '🏆', rarity: 'legendary', cost: 340, bonusDmg: 120, bonusHp: 1100, bonusSpeed: 10, bonusFreeze: 0.2 }
+  { id: 'pot_31', name: 'Эликсир сверхновой', icon: '💥', rarity: 'legendary', cost: 550, bonusDmg: 180 },
+  { id: 'pot_32', name: 'Эликсир бессмертия', icon: '💖', rarity: 'legendary', cost: 550, bonusHp: 1600 },
+  { id: 'pot_33', name: 'Эликсир света', icon: '✨', rarity: 'legendary', cost: 580, bonusSpeed: 24 },
+  { id: 'pot_34', name: 'Эликсир абсолютного нуля', icon: '🌌', rarity: 'legendary', cost: 600, bonusFreeze: 0.45 },
+  { id: 'pot_35', name: 'Эликсир гипер-заряда', icon: '🔋', rarity: 'legendary', cost: 620, bonusReload: 0.12 },
+  { id: 'pot_36', name: 'Эликсир дракона', icon: '🐉', rarity: 'legendary', cost: 650, bonusDmg: 150, bonusHp: 1200 },
+  { id: 'pot_37', name: 'Эликсир шторма', icon: '🌊', rarity: 'legendary', cost: 680, bonusDmg: 140, bonusSpeed: 18 },
+  { id: 'pot_38', name: 'Эликсир ледяного короля', icon: '👑', rarity: 'legendary', cost: 720, bonusFreeze: 0.36, bonusHp: 1250 },
+  { id: 'pot_39', name: 'Эликсир омеги', icon: '🔱', rarity: 'legendary', cost: 760, bonusDmg: 170, bonusReload: 0.1 },
+  { id: 'pot_40', name: 'Эликсир Фриза', icon: '🏆', rarity: 'legendary', cost: 850, bonusDmg: 165, bonusHp: 1450, bonusSpeed: 15, bonusFreeze: 0.3 }
 ];
 
 function buildPotionDesc(p){
@@ -898,7 +1107,7 @@ function buildPotionDesc(p){
   if (p.bonusSpeed) parts.push(`+${p.bonusSpeed} скорости`);
   if (p.bonusFreeze) parts.push(`+${p.bonusFreeze}с фриза`);
   if (p.bonusReload) parts.push(`-${p.bonusReload}с перезарядки`);
-  return parts.join(', ');
+  return parts.join(', ') + ' (на 1 катку)';
 }
 
 const BUFFS = {
@@ -995,13 +1204,13 @@ for (let i = 0; i < POTION_DEFS.length; i++){
   BUFFS[p.id] = {
     ...p,
     kind: 'potion',
-    tier: `Зелье #${i + 1} (навсегда)`,
+    tier: `Зелье #${i + 1} • На 1 бой`,
     desc: buildPotionDesc(p)
   };
 }
 
 const SHOP_ORDER = [...POTION_IDS, ...BUFF_IDS];
-let currentShopTab = 'potions';
+let currentShopTab = 'skins';
 
 function getBuffArtSVG(id){
   const b = BUFFS[id];
@@ -1015,7 +1224,109 @@ function getBuffArtSVG(id){
   </svg>`;
 }
 
-function getCharacterSVG(id, size = 132){
+/* ANIME SKIN & CHARACTER SVG GENERATOR */
+function getAnimeSkinSVG(skin, size = 132){
+  const body = skin.bodyColor;
+  const hat  = skin.hatColor;
+  const eye  = skin.eyeColor;
+  const aura = skin.auraColor;
+
+  let headDecor = '';
+  if (skin.hairStyle === 'sakura'){
+    headDecor = `
+      <path d="M36 28 C38 11, 82 11, 84 28 L76 23 L60 27 L44 23 Z" fill="#f472b6" stroke="#040912" stroke-width="3"/>
+      <circle cx="80" cy="18" r="7" fill="#fbcfe8" stroke="#be185d" stroke-width="2"/>
+      <circle cx="80" cy="18" r="2.5" fill="#be185d"/>
+    `;
+  } else if (skin.hairStyle === 'spiky'){
+    headDecor = `
+      <polygon points="36,26 42,8 52,18 60,5 68,18 78,8 84,26" fill="${hat}" stroke="#040912" stroke-width="3"/>
+      <rect x="40" y="21" width="40" height="6" rx="3" fill="#94a3b8" stroke="#040912" stroke-width="2"/>
+    `;
+  } else if (skin.hairStyle === 'twintails'){
+    headDecor = `
+      <path d="M36 30 L24 54 L34 52 L40 34 Z" fill="${hat}" stroke="#040912" stroke-width="2.5"/>
+      <path d="M84 30 L96 54 L86 52 L80 34 Z" fill="${hat}" stroke="#040912" stroke-width="2.5"/>
+      <path d="M37 26 C40 12, 80 12, 83 26 Z" fill="${hat}" stroke="#040912" stroke-width="3"/>
+    `;
+  } else if (skin.hairStyle === 'oni'){
+    headDecor = `
+      <polygon points="42,16 36,3 48,13" fill="#facc15" stroke="#040912" stroke-width="2.5"/>
+      <polygon points="78,16 84,3 72,13" fill="#facc15" stroke="#040912" stroke-width="2.5"/>
+      <path d="M38 25 C42 13, 78 13, 82 25 Z" fill="#1e1b4b" stroke="#040912" stroke-width="3"/>
+    `;
+  } else if (skin.hairStyle === 'mecha'){
+    headDecor = `
+      <polygon points="60,3 65,17 55,17" fill="#4ade80" stroke="#040912" stroke-width="2.5"/>
+      <polygon points="35,24 31,8 42,18" fill="#a855f7" stroke="#040912" stroke-width="2.5"/>
+      <polygon points="85,24 89,8 78,18" fill="#a855f7" stroke="#040912" stroke-width="2.5"/>
+    `;
+  } else if (skin.hairStyle === 'kabuto'){
+    headDecor = `
+      <path d="M34 26 C38 11, 82 11, 86 26 Z" fill="#991b1b" stroke="#040912" stroke-width="3"/>
+      <path d="M44 13 Q60 22 76 13 L60 5 Z" fill="#facc15" stroke="#040912" stroke-width="2"/>
+    `;
+  } else if (skin.hairStyle === 'longhair'){
+    headDecor = `
+      <path d="M36 26 L30 68 L42 66 L42 34 Z" fill="#bae6fd" stroke="#040912" stroke-width="2.5"/>
+      <path d="M84 26 L90 68 L78 66 L78 34 Z" fill="#bae6fd" stroke="#040912" stroke-width="2.5"/>
+      <path d="M37 25 C40 11, 80 11, 83 25 Z" fill="#e0f2fe" stroke="#040912" stroke-width="3"/>
+    `;
+  } else if (skin.hairStyle === 'neko'){
+    headDecor = `
+      <polygon points="38,24 41,7 53,18" fill="#1f2937" stroke="#040912" stroke-width="3"/>
+      <polygon points="82,24 79,7 67,18" fill="#1f2937" stroke="#040912" stroke-width="3"/>
+      <polygon points="41,21 43,11 50,18" fill="#f472b6"/>
+      <polygon points="79,21 77,11 70,18" fill="#f472b6"/>
+    `;
+  } else if (skin.hairStyle === 'halo'){
+    headDecor = `
+      <circle cx="60" cy="36" r="34" fill="none" stroke="#fde047" stroke-width="3" stroke-dasharray="6 6"/>
+      <polygon points="38,25 46,8 55,19 60,6 65,19 74,8 82,25" fill="#fde047" stroke="#040912" stroke-width="2.5"/>
+    `;
+  } else if (skin.hairStyle === 'kitsune'){
+    headDecor = `
+      <polygon points="38,23 42,6 54,18" fill="#fff7ed" stroke="#040912" stroke-width="3"/>
+      <polygon points="82,23 78,6 66,18" fill="#fff7ed" stroke="#040912" stroke-width="3"/>
+      <polygon points="42,20 44,10 51,17" fill="#f97316"/>
+      <polygon points="78,20 76,10 69,17" fill="#f97316"/>
+    `;
+  } else {
+    headDecor = `
+      <circle cx="60" cy="48" r="42" fill="none" stroke="${aura}" stroke-width="3" opacity="0.75"/>
+      <polygon points="37,25 45,7 54,18 60,4 66,18 75,7 83,25" fill="#f8fafc" stroke="#040912" stroke-width="2.5"/>
+    `;
+  }
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120">
+    <ellipse cx="60" cy="110" rx="30" ry="6.5" fill="rgba(0,0,0,0.48)"/>
+    <circle cx="60" cy="56" r="44" fill="${aura}" opacity="0.16"/>
+    <rect x="41" y="84" width="13" height="22" rx="5" fill="#0f172a" stroke="#040912" stroke-width="3"/>
+    <rect x="66" y="84" width="13" height="22" rx="5" fill="#0f172a" stroke="#040912" stroke-width="3"/>
+    <rect x="34" y="48" width="52" height="40" rx="16" fill="${body}" stroke="#040912" stroke-width="3.5"/>
+    <path d="M46 50 L60 66 L74 50" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <rect x="17" y="54" width="17" height="12" rx="6" fill="${body}" stroke="#040912" stroke-width="3"/>
+    <rect x="86" y="52" width="26" height="12" rx="6" fill="#1e293b" stroke="#040912" stroke-width="3"/>
+    <circle cx="110" cy="58" r="4.5" fill="${skin.bulletColor}"/>
+    <circle cx="60" cy="34" r="22" fill="#fff1f2" stroke="#040912" stroke-width="3.5"/>
+    ${headDecor}
+    <!-- Big expressive anime eyes -->
+    <ellipse cx="51" cy="34" rx="4.2" ry="5" fill="${eye}"/>
+    <ellipse cx="69" cy="34" rx="4.2" ry="5" fill="${eye}"/>
+    <circle cx="49.8" cy="32.2" r="1.7" fill="#fff"/>
+    <circle cx="67.8" cy="32.2" r="1.7" fill="#fff"/>
+    <ellipse cx="45" cy="39" rx="2.8" ry="1.4" fill="#fb7185" opacity="0.65"/>
+    <ellipse cx="75" cy="39" rx="2.8" ry="1.4" fill="#fb7185" opacity="0.65"/>
+    <path d="M56 42 Q60 45 64 42" stroke="#040912" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function getCharacterSVG(id, size = 132, skinIdOverride = null){
+  const activeSkinId = skinIdOverride !== null ? skinIdOverride : (account?.equippedSkin?.[id] || '');
+  if (activeSkinId && SKINS[activeSkinId] && SKINS[activeSkinId].brawlerId === id){
+    return getAnimeSkinSVG(SKINS[activeSkinId], size);
+  }
+
   if (id === 'volt'){
     return `<svg width="${size}" height="${size}" viewBox="0 0 120 120">
       <ellipse cx="60" cy="110" rx="28" ry="6" fill="rgba(0,0,0,0.45)"/>
@@ -1108,11 +1419,20 @@ function getCharacterSVG(id, size = 132){
 
 function drawCharacterOnCanvas(ctx, f, isPlayer){
   const bId = f.brawler.id;
+  const skin = f.skinId && SKINS[f.skinId] ? SKINS[f.skinId] : null;
   const r = f.radius;
   const frozen = f.freezeTimer > 0;
 
   ctx.save();
   if (f.inBush) ctx.globalAlpha = 0.55;
+
+  if (skin){
+    ctx.strokeStyle = skin.auraColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r + 11, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   ctx.strokeStyle = frozen ? '#67e8f9' : (isPlayer ? '#4ade80' : '#fb7185');
   ctx.lineWidth = 3.5;
@@ -1120,7 +1440,7 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.ellipse(f.x, f.y + 8, r + 6, (r + 6) * 0.72, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = frozen ? '#7dd3fc' : f.brawler.color;
+  ctx.fillStyle = frozen ? '#7dd3fc' : (skin ? skin.bodyColor : f.brawler.color);
   ctx.strokeStyle = '#040912';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -1138,13 +1458,13 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.roundRect(6, -5, r + 9, 10, 4);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = '#38bdf8';
+  ctx.fillStyle = skin ? skin.bulletColor : '#38bdf8';
   ctx.beginPath();
   ctx.arc(r + 14, 0, 3.5, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  ctx.fillStyle = bId === 'volt' ? '#ffe4e6' : (bId === 'titan' ? '#fde68a' : (bId === 'spark' ? '#f3e8ff' : '#e0f2fe'));
+  ctx.fillStyle = skin ? '#fff1f2' : (bId === 'volt' ? '#ffe4e6' : (bId === 'titan' ? '#fde68a' : (bId === 'spark' ? '#f3e8ff' : '#e0f2fe')));
   ctx.strokeStyle = '#040912';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -1152,17 +1472,17 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = bId === 'volt' ? '#be123c' : (bId === 'titan' ? '#38bdf8' : (bId === 'boreas' ? '#facc15' : (bId === 'spark' ? '#7e22ce' : '#0284c7')));
+  ctx.fillStyle = skin ? skin.hatColor : (bId === 'volt' ? '#be123c' : (bId === 'titan' ? '#38bdf8' : (bId === 'boreas' ? '#facc15' : (bId === 'spark' ? '#7e22ce' : '#0284c7'))));
   ctx.beginPath();
   ctx.arc(f.x, f.y - r * 0.75, r * 0.68, Math.PI, 0);
   ctx.fill();
   ctx.stroke();
 
   const lookX = Math.cos(f.angle) * 3;
-  ctx.fillStyle = '#040912';
+  ctx.fillStyle = skin ? skin.eyeColor : '#040912';
   ctx.beginPath();
-  ctx.arc(f.x - 4 + lookX, f.y - r * 0.62, 2.2, 0, Math.PI * 2);
-  ctx.arc(f.x + 4 + lookX, f.y - r * 0.62, 2.2, 0, Math.PI * 2);
+  ctx.arc(f.x - 4 + lookX, f.y - r * 0.62, skin ? 2.8 : 2.2, 0, Math.PI * 2);
+  ctx.arc(f.x + 4 + lookX, f.y - r * 0.62, skin ? 2.8 : 2.2, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.globalAlpha = 1;
@@ -1189,8 +1509,8 @@ function drawCharacterOnCanvas(ctx, f, isPlayer){
   ctx.restore();
 }
 
-const BACKUP_KEYS = ['fight_friz_account_v4', 'fight_friz_account_v3', 'fight_friz_account_v2'];
-const WINDOW_NAME_PREFIX = 'FIGHT_FRIZ_SAVE_V4:';
+const BACKUP_KEYS = ['fight_friz_account_v5', 'fight_friz_account_v4', 'fight_friz_account_v3'];
+const WINDOW_NAME_PREFIX = 'FIGHT_FRIZ_SAVE_V5:';
 
 function createEmptyInventory(){
   const inv = {};
@@ -1210,6 +1530,8 @@ function createDefaultAccount(){
     selected: 'friz',
     unlocked: { friz: true, volt: false, titan: false, glacier: false, spark: false, boreas: false },
     levels:   { friz: 1, volt: 1, titan: 1, glacier: 1, spark: 1, boreas: 1 },
+    unlockedSkins: {},
+    equippedSkin: { friz: '', volt: '', titan: '', glacier: '', spark: '', boreas: '' },
     inventory: createEmptyInventory(),
     equipped: {
       friz: [], volt: [], titan: [], glacier: [], spark: [], boreas: []
@@ -1219,6 +1541,12 @@ function createDefaultAccount(){
 }
 
 let account = createDefaultAccount();
+
+function clearAllConsumedPotions(){
+  for (const bId of BRAWLER_ORDER){
+    account.potionsApplied[bId] = {};
+  }
+}
 
 function ensurePlayableSelectedBrawler(){
   account.unlocked.friz = true;
@@ -1239,8 +1567,9 @@ function getSaveScore(acc){
   if (!acc) return 0;
   const lvlSum = Object.values(acc.levels || {}).reduce((s, v) => s + Number(v || 1), 0);
   const unlCount = Object.values(acc.unlocked || {}).filter(Boolean).length;
+  const skinsCount = Object.values(acc.unlockedSkins || {}).filter(Boolean).length;
   const invSum = Object.values(acc.inventory || {}).reduce((s, v) => s + Number(v || 0), 0);
-  return Number(acc.trophies || 0) * 10 + Number(acc.coins || 0) + Number(acc.xp || 0) + lvlSum * 50 + unlCount * 150 + invSum * 15;
+  return Number(acc.trophies || 0) * 10 + Number(acc.coins || 0) + Number(acc.xp || 0) + lvlSum * 50 + unlCount * 150 + skinsCount * 200 + invSum * 15;
 }
 
 function applyParsedSaveToAccount(parsed){
@@ -1267,6 +1596,19 @@ function applyParsedSaveToAccount(parsed){
       account.levels[id] = Math.max(Number(account.levels[id] || 1), Number(d.levels[id] || 1));
     }
   }
+  if (d.unlockedSkins && typeof d.unlockedSkins === 'object'){
+    for (const sId of SKIN_ORDER){
+      if (d.unlockedSkins[sId]) account.unlockedSkins[sId] = true;
+    }
+  }
+  if (d.equippedSkin && typeof d.equippedSkin === 'object'){
+    for (const bId of BRAWLER_ORDER){
+      const sk = d.equippedSkin[bId];
+      if (sk && SKINS[sk] && SKINS[sk].brawlerId === bId){
+        account.equippedSkin[bId] = sk;
+      }
+    }
+  }
   if (d.inventory && typeof d.inventory === 'object'){
     for (const id of SHOP_ORDER){
       account.inventory[id] = Math.max(Number(account.inventory[id] || 0), Number(d.inventory[id] || 0));
@@ -1290,8 +1632,6 @@ function applyParsedSaveToAccount(parsed){
           Number(incPot[pId] || 0)
         );
       }
-      if (incPot.fury) account.potionsApplied[bId].pot_21 = Math.max(account.potionsApplied[bId].pot_21 || 0, Number(incPot.fury));
-      if (incPot.vital) account.potionsApplied[bId].pot_22 = Math.max(account.potionsApplied[bId].pot_22 || 0, Number(incPot.vital));
     }
   }
   ensurePlayableSelectedBrawler();
@@ -1464,7 +1804,7 @@ function initGlobalOnlineCounter(){
     });
     ch.subscribe(async status => {
       if (status === 'SUBSCRIBED'){
-        try { await ch.track({ nick: account.nick, selected: account.selected }); } catch(_){}
+        try { await ch.track({ nick: account.nick, selected: account.selected, skin: account.equippedSkin[account.selected] || '' }); } catch(_){}
       }
     });
     lobbyNet.globalCh = ch;
@@ -1473,13 +1813,14 @@ function initGlobalOnlineCounter(){
 
 function updateLobbyPresence(){
   if (lobbyNet.globalCh){
-    try { lobbyNet.globalCh.track({ nick: account.nick, selected: account.selected }); } catch(_){}
+    try { lobbyNet.globalCh.track({ nick: account.nick, selected: account.selected, skin: account.equippedSkin[account.selected] || '' }); } catch(_){}
   }
   if (lobbyNet.partyCh){
     try {
       lobbyNet.partyCh.track({
         nick: account.nick,
         selected: account.selected,
+        skin: account.equippedSkin[account.selected] || '',
         level: account.levels[account.selected] || 1
       });
     } catch(_){}
@@ -1528,6 +1869,7 @@ function joinParty(code){
           await ch.track({
             nick: account.nick,
             selected: account.selected,
+            skin: account.equippedSkin[account.selected] || '',
             level: account.levels[account.selected] || 1
           });
         } catch(_){}
@@ -1565,8 +1907,8 @@ function renderBuffsSelectorModal(){
   listEl.innerHTML = '';
 
   const orderedForSelector = [...SHOP_ORDER].sort((a, b) => {
-    const ownedA = (account.inventory[a] || 0) > 0 || activeList.includes(a) ? 1 : 0;
-    const ownedB = (account.inventory[b] || 0) > 0 || activeList.includes(b) ? 1 : 0;
+    const ownedA = (account.inventory[a] || 0) > 0 || activeList.includes(a) || (account.potionsApplied[selId][a] || 0) > 0 ? 1 : 0;
+    const ownedB = (account.inventory[b] || 0) > 0 || activeList.includes(b) || (account.potionsApplied[selId][b] || 0) > 0 ? 1 : 0;
     return ownedB - ownedA;
   });
 
@@ -1583,7 +1925,7 @@ function renderBuffsSelectorModal(){
       const appliedCnt = Number(account.potionsApplied[selId][id] || 0);
       actionHtml = `
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:10px;color:#86efac;margin-bottom:3px">Выпито: ${appliedCnt}</div>
+          <div style="font-size:10px;color:#fbbf24;margin-bottom:3px">${appliedCnt > 0 ? `На след. бой: ×${appliedCnt}` : 'На 1 катку'}</div>
           <button class="bs-shop-price-btn" style="width:auto;padding:5px 9px">${owned > 0 ? `ВЫПИТЬ (${owned})` : 'КУПИТЬ'}</button>
         </div>
       `;
@@ -1662,8 +2004,10 @@ function renderLobby(){
   const selId = account.selected;
   const st = getBrawlerStats(selId);
   const lvlInfo = getAccountLevelInfo();
+  const eqSkinId = account.equippedSkin[selId] || '';
+  const eqSkin = eqSkinId && SKINS[eqSkinId] ? SKINS[eqSkinId] : null;
 
-  document.getElementById('topAvatarBox').innerHTML = getCharacterSVG(selId, 38);
+  document.getElementById('topAvatarBox').innerHTML = getCharacterSVG(selId, 38, eqSkinId);
   document.getElementById('topNickLabel').textContent = account.nick;
   document.getElementById('accLevelStar').textContent = String(lvlInfo.lvl);
   document.getElementById('accXpFill').style.width = `${lvlInfo.pct}%`;
@@ -1677,7 +2021,14 @@ function renderLobby(){
   if (cntBadge) cntBadge.textContent = `${unlockedCount}/${BRAWLER_ORDER.length}`;
 
   document.getElementById('heroStageName').textContent = `${st.name.toUpperCase()} • УР. ${st.level}`;
-  document.getElementById('heroStageAvatar').innerHTML = getCharacterSVG(selId, 144);
+  const skinLbl = document.getElementById('heroSkinName');
+  if (eqSkin){
+    skinLbl.textContent = `🌸 ${eqSkin.name}`;
+    skinLbl.classList.remove('hidden');
+  } else {
+    skinLbl.classList.add('hidden');
+  }
+  document.getElementById('heroStageAvatar').innerHTML = getCharacterSVG(selId, 144, eqSkinId);
 
   const codeLbl = document.getElementById('lobbyCodeLabel');
   codeLbl.textContent = lobbyNet.partyCode ? lobbyNet.partyCode : 'Соло (нажми)';
@@ -1690,7 +2041,7 @@ function renderLobby(){
     const f1 = friends[0];
     const b1 = BRAWLERS[f1.selected] ? f1.selected : 'friz';
     slot1.classList.add('filled');
-    slot1.innerHTML = `<div style="font-size:10px;font-weight:900;color:#4ade80">${escapeHtml(f1.nick || 'Друг')}</div>${getCharacterSVG(b1, 70)}`;
+    slot1.innerHTML = `<div style="font-size:10px;font-weight:900;color:#4ade80">${escapeHtml(f1.nick || 'Друг')}</div>${getCharacterSVG(b1, 70, f1.skin || '')}`;
   } else {
     slot1.classList.remove('filled');
     slot1.innerHTML = `<div class="bs-plus">+</div><div style="font-size:10px;font-weight:900;color:#bae6fd">ПРИГЛАСИТЬ<br>ДРУГА</div>`;
@@ -1700,7 +2051,7 @@ function renderLobby(){
     const f2 = friends[1];
     const b2 = BRAWLERS[f2.selected] ? f2.selected : 'friz';
     slot2.classList.add('filled');
-    slot2.innerHTML = `<div style="font-size:10px;font-weight:900;color:#4ade80">${escapeHtml(f2.nick || 'Друг')}</div>${getCharacterSVG(b2, 70)}`;
+    slot2.innerHTML = `<div style="font-size:10px;font-weight:900;color:#4ade80">${escapeHtml(f2.nick || 'Друг')}</div>${getCharacterSVG(b2, 70, f2.skin || '')}`;
   } else {
     slot2.classList.remove('filled');
     slot2.innerHTML = `<div class="bs-plus">+</div><div style="font-size:10px;font-weight:900;color:#bae6fd">ВОЙТИ ПО<br>КОДУ</div>`;
@@ -1730,10 +2081,11 @@ function renderLobby(){
     const b = BRAWLERS[id];
     const isUnlocked = !!account.unlocked[id];
     const lvl = account.levels[id] || 1;
+    const skId = account.equippedSkin[id] || '';
     const card = document.createElement('div');
     card.className = 'brawler-card' + (account.selected === id ? ' selected' : '') + (!isUnlocked ? ' locked' : '');
     card.innerHTML = `
-      ${getCharacterSVG(id, 48)}
+      ${getCharacterSVG(id, 48, skId)}
       <div class="b-name">${b.name}</div>
       <div class="b-lvl">${isUnlocked ? `Ур. ${lvl}` : `🔒 ${b.unlockCost} 🪙`}</div>
     `;
@@ -1756,11 +2108,13 @@ let previewBrawlerId = 'friz';
 function renderBrawlerPreviewOnly(targetId){
   previewBrawlerId = BRAWLERS[targetId] ? targetId : account.selected;
   const st = getBrawlerStats(previewBrawlerId);
-  document.getElementById('brawlerPreviewWrap').innerHTML = getCharacterSVG(previewBrawlerId, 82);
+  const curSkinId = account.equippedSkin[previewBrawlerId] || '';
+  document.getElementById('brawlerPreviewWrap').innerHTML = getCharacterSVG(previewBrawlerId, 82, curSkinId);
   const unlocked = !!account.unlocked[previewBrawlerId];
   const upgCost = st.level * 120;
   const activeBuffCount = (account.equipped[account.selected] || []).length;
-  document.getElementById('activeBuffsBadge').textContent = `Бафов: ${activeBuffCount}/2`;
+  const drunkPotionsCount = Object.values(account.potionsApplied[account.selected] || {}).reduce((s, v) => s + Number(v || 0), 0);
+  document.getElementById('activeBuffsBadge').textContent = `Бафов: ${activeBuffCount}/2` + (drunkPotionsCount > 0 ? ` • 🧪×${drunkPotionsCount}` : '');
 
   brawlerInfo.innerHTML = `
     <div style="font-weight:900;font-size:13px;color:${st.color}">${st.name} • ${st.role}</div>
@@ -1768,6 +2122,37 @@ function renderBrawlerPreviewOnly(targetId){
     <div class="info-row"><span>Урон:</span><b>${st.dmg} × ${st.pellets} (❄️ ${st.freezeSec}с)</b></div>
     <div style="font-size:10px;color:#67e8f9;margin-top:2px">⚡ ${st.superDesc}</div>
   `;
+
+  /* Render Skin Selector Pills for previewBrawlerId */
+  const skinsBar = document.getElementById('brawlerSkinsBar');
+  skinsBar.innerHTML = '';
+  const bSkins = SKIN_ORDER.filter(sId => SKINS[sId].brawlerId === previewBrawlerId);
+  const options = [
+    { id: '', name: 'Стандарт', owned: true },
+    ...bSkins.map(sId => ({ id: sId, name: SKINS[sId].name, owned: !!account.unlockedSkins[sId] }))
+  ];
+  for (const opt of options){
+    const pill = document.createElement('div');
+    const isAct = curSkinId === opt.id;
+    pill.className = 'skin-pill' + (isAct ? ' active' : '') + (!opt.owned ? ' locked' : '');
+    pill.innerHTML = `
+      <div>${opt.owned ? (isAct ? '✅' : '🌸') : '🔒'}</div>
+      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px">${escapeHtml(opt.name)}</div>
+    `;
+    pill.onclick = () => {
+      if (opt.owned){
+        account.equippedSkin[previewBrawlerId] = opt.id;
+        sfx.play(540, 820, 0.1);
+        saveAccount();
+        renderLobby();
+      } else {
+        brawlersModal.classList.add('hidden');
+        currentShopTab = 'skins';
+        openShopModal();
+      }
+    };
+    skinsBar.appendChild(pill);
+  }
 
   if (!unlocked){
     btnActionBrawler.className = 'btn btn-unlock';
@@ -1783,48 +2168,104 @@ function renderBrawlerPreviewOnly(targetId){
   document.getElementById('btnPlayBots').style.opacity = '1';
 }
 
-/* BRAWL STARS STYLE SHOP (40 POTIONS + BUFFS) */
+/* BRAWL STARS STYLE SHOP (SKINS + 40 POTIONS + BUFFS) */
 function openShopModal(){
   document.getElementById('shopCoinsText').textContent = String(account.coins);
+  document.getElementById('tabShopSkins').classList.toggle('active', currentShopTab === 'skins');
   document.getElementById('tabShopPotions').classList.toggle('active', currentShopTab === 'potions');
   document.getElementById('tabShopBuffs').classList.toggle('active', currentShopTab === 'buffs');
   document.getElementById('tabShopAll').classList.toggle('active', currentShopTab === 'all');
 
   const grid = document.getElementById('shopGrid');
   grid.innerHTML = '';
-  const itemsToRender = currentShopTab === 'potions' ? POTION_IDS
-                      : currentShopTab === 'buffs' ? BUFF_IDS
-                      : SHOP_ORDER;
 
-  for (const id of itemsToRender){
-    const it = BUFFS[id];
-    const cnt = account.inventory[id] || 0;
-    const card = document.createElement('div');
-    card.className = `bs-shop-card rarity-${it.rarity}`;
-    card.innerHTML = `
-      <div class="bs-rarity-tag">${it.tier} • В сумке: ${cnt}</div>
-      <div class="bs-shop-art">${getBuffArtSVG(id)}</div>
-      <div class="bs-shop-title">${it.name}</div>
-      <div class="bs-shop-stat">${it.desc}</div>
-      <button class="bs-shop-price-btn">🪙 ${it.cost}</button>
-    `;
-    card.querySelector('button').onclick = () => {
-      if (account.coins >= it.cost){
-        account.coins -= it.cost;
-        account.inventory[id] = (account.inventory[id] || 0) + 1;
-        sfx.play(580, 920, 0.14);
-        saveAccount();
-        openShopModal();
-        renderLobby();
-      } else {
-        sfx.play(220, 140, 0.14);
+  if (currentShopTab === 'skins' || currentShopTab === 'all'){
+    for (const sId of SKIN_ORDER){
+      const sk = SKINS[sId];
+      const isOwned = !!account.unlockedSkins[sId];
+      const isEquipped = account.equippedSkin[sk.brawlerId] === sId;
+      const card = document.createElement('div');
+      card.className = 'bs-shop-card rarity-anime';
+      let btnClass = 'bs-shop-price-btn';
+      let btnText = `🪙 ${sk.cost}`;
+      if (isEquipped){
+        btnClass += ' equipped-skin';
+        btnText = '✅ НАДЕТО';
+      } else if (isOwned){
+        btnClass += ' owned-skin';
+        btnText = 'НАДЕТЬ СКИН';
       }
-    };
-    grid.appendChild(card);
+
+      card.innerHTML = `
+        <div class="bs-rarity-tag">${sk.tag}</div>
+        <div class="bs-shop-art">${getAnimeSkinSVG(sk, 54)}</div>
+        <div class="bs-shop-title">${sk.name}</div>
+        <div class="bs-shop-stat">${sk.desc}</div>
+        <button class="${btnClass}">${btnText}</button>
+      `;
+
+      card.querySelector('button').onclick = () => {
+        if (isEquipped) return;
+        if (isOwned){
+          account.equippedSkin[sk.brawlerId] = sId;
+          account.unlocked[sk.brawlerId] = account.unlocked[sk.brawlerId];
+          sfx.play(580, 920, 0.12);
+          saveAccount();
+          openShopModal();
+          renderLobby();
+        } else if (account.coins >= sk.cost){
+          account.coins -= sk.cost;
+          account.unlockedSkins[sId] = true;
+          account.equippedSkin[sk.brawlerId] = sId;
+          sfx.play(620, 1020, 0.16);
+          saveAccount();
+          openShopModal();
+          renderLobby();
+        } else {
+          sfx.play(220, 140, 0.14);
+        }
+      };
+      grid.appendChild(card);
+    }
   }
+
+  if (currentShopTab !== 'skins'){
+    const itemsToRender = currentShopTab === 'potions' ? POTION_IDS
+                        : currentShopTab === 'buffs' ? BUFF_IDS
+                        : SHOP_ORDER;
+
+    for (const id of itemsToRender){
+      const it = BUFFS[id];
+      const cnt = account.inventory[id] || 0;
+      const card = document.createElement('div');
+      card.className = `bs-shop-card rarity-${it.rarity}`;
+      card.innerHTML = `
+        <div class="bs-rarity-tag">${it.tier} • В сумке: ${cnt}</div>
+        <div class="bs-shop-art">${getBuffArtSVG(id)}</div>
+        <div class="bs-shop-title">${it.name}</div>
+        <div class="bs-shop-stat">${it.desc}</div>
+        <button class="bs-shop-price-btn">🪙 ${it.cost}</button>
+      `;
+      card.querySelector('button').onclick = () => {
+        if (account.coins >= it.cost){
+          account.coins -= it.cost;
+          account.inventory[id] = (account.inventory[id] || 0) + 1;
+          sfx.play(580, 920, 0.14);
+          saveAccount();
+          openShopModal();
+          renderLobby();
+        } else {
+          sfx.play(220, 140, 0.14);
+        }
+      };
+      grid.appendChild(card);
+    }
+  }
+
   shopModal.classList.remove('hidden');
 }
 
+document.getElementById('tabShopSkins').onclick = () => { currentShopTab = 'skins'; openShopModal(); };
 document.getElementById('tabShopPotions').onclick = () => { currentShopTab = 'potions'; openShopModal(); };
 document.getElementById('tabShopBuffs').onclick = () => { currentShopTab = 'buffs'; openShopModal(); };
 document.getElementById('tabShopAll').onclick = () => { currentShopTab = 'all'; openShopModal(); };
@@ -1860,7 +2301,7 @@ function renderMatchmakingSlots(){
     if (pl){
       html += `
         <div class="mm-slot found">
-          ${getCharacterSVG(pl.selected, 46)}
+          ${getCharacterSVG(pl.selected, 46, pl.skin || '')}
           <div style="font-size:10px;font-weight:900;color:#fff;margin-top:2px">${escapeHtml(pl.nick)}</div>
           <div style="font-size:9px;color:#86efac">${pl.isBot ? 'Бот' : 'Игрок'}</div>
         </div>
@@ -1887,6 +2328,7 @@ function startOnlineMatchmaking(channelKey, roomLabel, modeId = 'solo'){
     id: account.id,
     nick: account.nick,
     selected: account.selected,
+    skin: account.equippedSkin[account.selected] || '',
     isBot: false
   }];
 
@@ -1912,6 +2354,7 @@ function startOnlineMatchmaking(channelKey, roomLabel, modeId = 'solo'){
               id: k,
               nick: meta.nick || 'Игрок',
               selected: BRAWLERS[meta.selected] ? meta.selected : 'friz',
+              skin: meta.skin || '',
               isBot: false
             });
             sfx.play(560, 780, 0.08);
@@ -1921,7 +2364,7 @@ function startOnlineMatchmaking(channelKey, roomLabel, modeId = 'solo'){
       });
       ch.subscribe(async status => {
         if (status === 'SUBSCRIBED'){
-          try { await ch.track({ nick: account.nick, selected: account.selected }); } catch(_){}
+          try { await ch.track({ nick: account.nick, selected: account.selected, skin: account.equippedSkin[account.selected] || '' }); } catch(_){}
         }
       });
       matchmaking.channel = ch;
@@ -1938,6 +2381,7 @@ function startOnlineMatchmaking(channelKey, roomLabel, modeId = 'solo'){
         id: 'mm_bot_' + idx,
         nick: BOT_NAMES[(idx - 1) % BOT_NAMES.length],
         selected: bId,
+        skin: '',
         isBot: true
       });
       sfx.play(520, 740, 0.07);
@@ -2018,7 +2462,7 @@ document.getElementById('btnAdminLogin').onclick = () => {
 };
 
 document.getElementById('btnAdmCoins').onclick = () => {
-  account.coins += 5000;
+  account.coins += 10000;
   saveAccount();
   renderLobby();
 };
@@ -2031,6 +2475,9 @@ document.getElementById('btnAdmUnlockAll').onclick = () => {
   for (const id of BRAWLER_ORDER){
     account.unlocked[id] = true;
     account.levels[id] = 9;
+  }
+  for (const sId of SKIN_ORDER){
+    account.unlockedSkins[sId] = true;
   }
   saveAccount();
   renderLobby();
@@ -2481,12 +2928,14 @@ const match = {
 
 function createFighter(opts){
   const st = getBrawlerStats(opts.brawlerId, opts.level);
+  const skId = opts.skinId && SKINS[opts.skinId] && SKINS[opts.skinId].brawlerId === opts.brawlerId ? opts.skinId : '';
   return {
     id: opts.id,
     name: opts.name,
     isPlayer: !!opts.isPlayer,
     isBot: !!opts.isBot,
     brawler: st,
+    skinId: skId,
     x: opts.x,
     y: opts.y,
     angle: 0,
@@ -2531,12 +2980,14 @@ function ensureFighterForPeer(peerId, info, slotIdx = 0){
   let f = match.fighters.find(item => item.id === peerId);
   const sp = SPAWNS[slotIdx % SPAWNS.length];
   if (!f){
+    const bId = BRAWLERS[info.selected] ? info.selected : 'friz';
     f = createFighter({
       id: peerId,
       name: info.nick || 'Игрок',
       isPlayer: false,
       isBot: false,
-      brawlerId: BRAWLERS[info.selected] ? info.selected : 'friz',
+      brawlerId: bId,
+      skinId: info.skin || '',
       level: clamp(Number(info.level || 1), 1, 9),
       x: typeof info.x === 'number' ? info.x : sp.x,
       y: typeof info.y === 'number' ? info.y : sp.y
@@ -2544,6 +2995,7 @@ function ensureFighterForPeer(peerId, info, slotIdx = 0){
     match.fighters.push(f);
   } else {
     f.name = info.nick || f.name;
+    if (info.skin !== undefined) f.skinId = info.skin;
     if (typeof info.x === 'number') f.x = lerp(f.x, info.x, 0.65);
     if (typeof info.y === 'number') f.y = lerp(f.y, info.y, 0.65);
     if (typeof info.angle === 'number') f.angle = info.angle;
@@ -2582,6 +3034,7 @@ function syncBotsWithHumans(){
         isPlayer: false,
         isBot: true,
         brawlerId: bId,
+        skinId: '',
         level: botLvl,
         x: sp.x,
         y: sp.y
@@ -2664,6 +3117,7 @@ function setupRealtimeChannel(channelKey){
               isPlayer: false,
               isBot: true,
               brawlerId: BRAWLERS[bState.brawlerId] ? bState.brawlerId : 'friz',
+              skinId: '',
               level: bState.level || 1,
               x: bState.x,
               y: bState.y
@@ -2687,6 +3141,7 @@ function setupRealtimeChannel(channelKey){
           await ch.track({
             nick: account.nick,
             selected: account.selected,
+            skin: account.equippedSkin[account.selected] || '',
             level: account.levels[account.selected] || 1
           });
         } catch(_){}
@@ -2726,6 +3181,7 @@ function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН', bo
     isPlayer: true,
     isBot: false,
     brawlerId: account.selected,
+    skinId: account.equippedSkin[account.selected] || '',
     level: account.levels[account.selected] || 1,
     x: SPAWNS[0].x,
     y: SPAWNS[0].y
@@ -2744,6 +3200,7 @@ function startMatch(channelKey = 'online_global', roomLabel = 'ОНЛАЙН', bo
       isPlayer: false,
       isBot: true,
       brawlerId: bId,
+      skinId: '',
       level: botLvl,
       x: SPAWNS[i].x,
       y: SPAWNS[i].y
@@ -2809,6 +3266,7 @@ function findAutoAimAngle(shooter){
 
 function spawnVolley(f, ang, isSuper, overridePellets = null, overrideSpread = null){
   const b = f.brawler;
+  const skin = f.skinId && SKINS[f.skinId] ? SKINS[f.skinId] : null;
   const cubeMult = 1 + f.cubes * 0.1;
   const modeDmgMult = match.modeId === 'storm' ? 1.2 : 1.0;
   const dmg = Math.round(b.dmg * cubeMult * modeDmgMult * (isSuper ? 1.25 : 1));
@@ -2832,7 +3290,7 @@ function spawnVolley(f, ang, isSuper, overridePellets = null, overrideSpread = n
       dmg,
       freezeSec,
       isSuper,
-      color: isSuper ? '#67e8f9' : b.color
+      color: isSuper ? '#67e8f9' : (skin ? skin.bulletColor : b.color)
     };
     match.bullets.push(bullet);
     created.push(bullet);
@@ -2949,13 +3407,18 @@ function finishMatch(rank){
   cleanupChannel();
   btnExitMatch.classList.add('hidden');
 
+  /* Expire all consumed potions after the match finishes */
+  const hadPotions = BRAWLER_ORDER.some(bId => Object.keys(account.potionsApplied[bId] || {}).length > 0);
+  clearAllConsumedPotions();
+
   if (wasBotsOnly){
+    saveAccount();
     document.getElementById('resRank').textContent = `${rank} МЕСТО!`;
     document.getElementById('resSub').textContent = 'Тренировочный бой с ботами завершён';
     document.getElementById('resRewards').innerHTML = `
       <div style="color:#93c5fd;font-size:13px;margin-bottom:4px">Режим с ботами: награды отключены</div>
       <div style="color:#facc15;font-size:12px">Кубки: 0 🏆 • Монеты: 0 🪙</div>
-      <div style="color:#bae6fd;font-size:11px;margin-top:4px">Играй в <b>ОНЛАЙН</b>, чтобы получать кубки и монеты!</div>
+      ${hadPotions ? '<div style="color:#f472b6;font-size:11px;margin-top:4px">🧪 Эффекты выпитых зелий закончились после катки</div>' : ''}
     `;
     renderLobby();
     resultScreen.classList.remove('hidden');
@@ -2980,6 +3443,7 @@ function finishMatch(rank){
     <div style="color:#ff9f43;font-size:15px;margin-bottom:4px">Кубки: ${sign}${trophyDelta} 🏆</div>
     <div style="color:#f1c40f;font-size:15px;margin-bottom:4px">Монеты: +${coinReward} 🪙</div>
     <div style="color:#38bdf8;font-size:13px">Опыт: +${xpReward} ⭐</div>
+    ${hadPotions ? '<div style="color:#f472b6;font-size:11px;margin-top:5px">🧪 Эффекты выпитых зелий закончились после катки</div>' : ''}
   `;
 
   renderLobby();
@@ -3143,6 +3607,7 @@ function updateMatch(dt){
       sendBroadcast('state', {
         nick: p.name,
         selected: p.brawler.id,
+        skin: p.skinId || '',
         level: p.brawler.level,
         x: p.x,
         y: p.y,
